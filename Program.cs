@@ -1,0 +1,110 @@
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuitInfo.Rubeus.Components;
+using NuitInfo.Rubeus.Components.Account;
+using NuitInfo.Rubeus.Data;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<IdentityUserAccessor>();
+builder.Services.AddScoped<IdentityRedirectManager>();
+builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+    })
+    .AddIdentityCookies();
+
+var postgresConnectionString = builder.Configuration["AUTH_STRING_POSTGREE"];
+var mongoConnectionString = builder.Configuration["AUTH_STRING_MONGO"];
+var varEnv3 = builder.Configuration["VAR_ENV_3"];
+var varEnv4 = builder.Configuration["VAR_ENV_4"];
+var varEnv5 = builder.Configuration["VAR_ENV_5"];
+var varEnv6 = builder.Configuration["VAR_ENV_6"];
+var varEnv7 = builder.Configuration["VAR_ENV_7"];
+var varEnv8 = builder.Configuration["VAR_ENV_8"];
+var varEnv9 = builder.Configuration["VAR_ENV_9"];
+var varEnv10 = builder.Configuration["VAR_ENV_10"];
+
+Console.WriteLine($"🧩 AUTH_STRING_POSTGREE = {postgresConnectionString}");
+Console.WriteLine($"🧩 AUTH_STRING_MONGO = {mongoConnectionString}");
+Console.WriteLine($"🧩 VAR_ENV_3 = {varEnv3}");
+Console.WriteLine($"🧩 VAR_ENV_4 = {varEnv4}");
+Console.WriteLine($"🧩 VAR_ENV_5 = {varEnv5}");
+Console.WriteLine($"🧩 VAR_ENV_6 = {varEnv6}");
+Console.WriteLine($"🧩 VAR_ENV_7 = {varEnv7}");
+Console.WriteLine($"🧩 VAR_ENV_8 = {varEnv8}");
+Console.WriteLine($"🧩 VAR_ENV_9 = {varEnv9}");
+Console.WriteLine($"🧩 VAR_ENV_10 = {varEnv10}");
+
+// Config initiale
+// var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseSqlite(connectionString));
+
+// BDD pour le Entity Framework avec PostgreSQL
+// var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+//     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+// Connection string PostgreSQL (hardcodée)
+var connectionString =
+    "Host=ecirada.valorium-mc.fr;Port=5432;Database=main;Username=main;Password=nostrecossesenpresonalucarandefuocsaldintredelasrasons";
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+// Config initiale
+// builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+//     .AddEntityFrameworkStores<ApplicationDbContext>()
+//     .AddSignInManager()
+//     .AddDefaultTokenProviders();
+
+builder.Services.AddIdentityCore<ApplicationUser>(options =>
+    {
+        options.SignIn.RequireConfirmedAccount = false; // ⬅️ important
+        options.User.RequireUniqueEmail = true;         // optionnel mais propre
+    })
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddSignInManager()
+    .AddDefaultTokenProviders();
+
+
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseMigrationsEndPoint();
+}
+else
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+
+
+app.UseAntiforgery();
+
+app.MapStaticAssets();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+
+// Add additional endpoints required by the Identity /Account Razor components.
+app.MapAdditionalIdentityEndpoints();
+
+app.Run();
