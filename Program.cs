@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 using NuitInfo.Rubeus.Components;
 using NuitInfo.Rubeus.Components.Account;
 using NuitInfo.Rubeus.Data;
+using NuitInfo.Rubeus.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +65,22 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+// 🧩 Config MongoDB
+builder.Services.AddSingleton<IMongoClient>(_ =>
+{
+    var mongoUrl = new MongoUrl(mongoConnectionString);
+    return new MongoClient(mongoUrl);
+});
+
+// On expose IMongoDatabase, basé sur la db du connection string
+builder.Services.AddScoped<IMongoDatabase>(sp =>
+{
+    var mongoUrl = new MongoUrl(mongoConnectionString);
+    var client = sp.GetRequiredService<IMongoClient>();
+    return client.GetDatabase(mongoUrl.DatabaseName);
+});
+
+
 // Config initiale
 // builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
 //     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -79,6 +97,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 
+builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 var app = builder.Build();
