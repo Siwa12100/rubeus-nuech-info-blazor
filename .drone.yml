@@ -59,7 +59,7 @@ steps:
         from_secret: SSH_PRIVATE_KEY
       script:
         - echo "🚀 [INFO] Déploiement de Rubeus NuitInfo Blazor..."
-        - cd deploiements/rubeus-nuech-info/
+        - cd deploiements/nuitInfo/blazor
         - docker compose down
         - docker compose pull
         - docker compose up -d
