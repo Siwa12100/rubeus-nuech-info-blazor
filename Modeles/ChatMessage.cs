@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace NuitInfo.Rubeus.Modeles;
 
+
 public class ChatMessage
 {
     [BsonId]
