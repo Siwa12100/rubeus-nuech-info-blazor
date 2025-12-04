@@ -34,9 +34,6 @@ WORKDIR /app
 # Copie des fichiers publiés
 COPY --from=publish /app/publish .
 
-# Copie du fichier de base de données (si nécessaire)
-COPY --from=build /src/Data/app.db ./Data/
-
 # Configuration des permissions
 RUN chown -R appuser:appuser /app
 USER appuser
