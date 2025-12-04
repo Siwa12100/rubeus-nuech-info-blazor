@@ -1,4 +1,4 @@
-namespace NuitInfo.Rubeus.RadioOccitania.Models;
+namespace NuitInfo.Rubeus.RadioOccitania.Modeles;
 
 /// <summary>
 /// Représente l'état d'avancement d'un traitement IA (transcription ou synthèse).

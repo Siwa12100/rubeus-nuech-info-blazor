@@ -1,4 +1,4 @@
-namespace NuitInfo.Rubeus.RadioOccitania.Models;
+namespace NuitInfo.Rubeus.RadioOccitania.Modeles;
 
 /// <summary>
 /// Représente un fichier audio enregistré avec ses métadonnées et son état de traitement IA.
