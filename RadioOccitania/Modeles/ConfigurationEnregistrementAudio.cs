@@ -68,6 +68,16 @@ public class ConfigurationEnregistrementAudio
     public int DureeConservationJours { get; set; } = 30;
 
     /// <summary>
+    /// Alias pour la compatibilité avec le HostedService de nettoyage.
+    /// Retourne la valeur de DureeConservationJours.
+    /// </summary>
+    public int ConserverEnregistrementsJours 
+    { 
+        get => DureeConservationJours; 
+        set => DureeConservationJours = value; 
+    }
+
+    /// <summary>
     /// Si true, l'enregistrement démarre automatiquement au lancement de l'application.
     /// </summary>
     public bool LancerAutomatiquementAuDemarrage { get; set; } = false;
@@ -164,7 +174,7 @@ public class ConfigurationEnregistrementAudio
     {
         if (IndexPeripheriqueAudio == -1)
             return "Périphérique audio par défaut du système";
-        
+
         return $"Périphérique audio #{IndexPeripheriqueAudio}";
     }
 }

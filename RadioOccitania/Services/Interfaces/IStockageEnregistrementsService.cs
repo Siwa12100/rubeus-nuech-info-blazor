@@ -68,4 +68,10 @@ public interface IStockageEnregistrementsService
     /// </summary>
     /// <exception cref="IOException">Si le répertoire n'est pas accessible.</exception>
     Task VerifierEtCreerRepertoireStockageAsync();
+
+    /// <summary>
+    /// Obtient la liste de tous les enregistrements.
+    /// </summary>
+    Task<List<EnregistrementAudio   >> ObtenirEnregistrementsAsync();
+
 }

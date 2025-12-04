@@ -115,6 +115,24 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
         }
     }
 
+    /// <summary>
+    /// Récupère tous les enregistrements disponibles.
+    /// </summary>
+    public async Task<List<EnregistrementAudio>> ObtenirEnregistrementsAsync()
+    {
+        try
+        {
+            return await _context.Enregistrements
+                .OrderByDescending(e => e.DateCreation)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération de tous les enregistrements");
+            throw;
+        }
+    }
+
     /// <inheritdoc />
     public async Task<EnregistrementAudio?> ObtenirEnregistrementAsync(Guid id)
     {
@@ -278,8 +296,6 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
         }
     }
 
-    #region Méthodes privées
-
     /// <summary>
     /// Charge l'index des métadonnées depuis le fichier JSON.
     /// </summary>
@@ -393,5 +409,22 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
         }
     }
 
-    #endregion
+    /// <summary>
+    /// Obtient la liste de tous les enregistrements.
+    /// </summary>
+    public async Task<List<Enregistrement>> ObtenirEnregistrementsAsync()
+    {
+        try
+        {
+            return await _context.Enregistrements
+                .OrderByDescending(e => e.DateCreation)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération des enregistrements");
+            return new List<Enregistrement>();
+        }
+    }
+
 }

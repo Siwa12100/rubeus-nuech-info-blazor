@@ -88,7 +88,29 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 // ==========================
 // Services Radio Occitania 
 // ==========================
+
+// 1. Configuration de l'enregistrement
+builder.Services.AddSingleton<IConfigurateurEnregistrementService, ConfigurateurEnregistrementService>();
+
+// 2. Stockage et gestion des enregistrements
+builder.Services.AddSingleton<IStockageEnregistrementsService, StockageEnregistrementsService>();
+
+// 3. Service d'enregistrement audio
 builder.Services.AddSingleton<IEnregistreurAudioService, EnregistreurAudioService>();
+
+// 4. Services d'analyse et traitement IA (stubs pour l'instant)
+builder.Services.AddSingleton<IAnalyseSilencesService, AnalyseSilencesServiceStub>();
+builder.Services.AddSingleton<ITranscriptionService, TranscriptionServiceStub>();
+builder.Services.AddSingleton<ISyntheseService, SyntheseServiceStub>();
+
+// 5. Services hébergés (HostedServices)
+builder.Services.AddHostedService<NettoyageEnregistrementsHostedService>();
+// builder.Services.AddHostedService<EnregistrementAutoHostedService>(); // Décommenter si besoin
+
+// 6. Configuration des options depuis appsettings.json
+builder.Services.Configure<ConfigurationEnregistrementAudio>(
+    builder.Configuration.GetSection("Enregistrement")
+);
 
 var app = builder.Build();
 
