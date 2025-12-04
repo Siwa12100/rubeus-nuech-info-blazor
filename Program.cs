@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
-using NuitInfo.Rubeus.Components;
-using NuitInfo.Rubeus.Components.Account;
+using NuitInfo.Rubeus.Composants;
+using NuitInfo.Rubeus.Composants.Account;
 using NuitInfo.Rubeus.Data;
 using NuitInfo.Rubeus.Repositories;
 
@@ -47,21 +47,8 @@ Console.WriteLine($"🧩 VAR_ENV_8 = {varEnv8}");
 Console.WriteLine($"🧩 VAR_ENV_9 = {varEnv9}");
 Console.WriteLine($"🧩 VAR_ENV_10 = {varEnv10}");
 
-// Config initiale
-// var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-// builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//     options.UseSqlite(connectionString));
-
-// BDD pour le Entity Framework avec PostgreSQL
-// var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-//     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-// Connection string PostgreSQL (hardcodée)
-var connectionString =
-    "Host=ecirada.valorium-mc.fr;Port=5432;Database=main;Username=main;Password=nostrecossesenpresonalucarandefuocsaldintredelasrasons";
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(postgresConnectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -80,17 +67,10 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
     return client.GetDatabase(mongoUrl.DatabaseName);
 });
 
-
-// Config initiale
-// builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-//     .AddEntityFrameworkStores<ApplicationDbContext>()
-//     .AddSignInManager()
-//     .AddDefaultTokenProviders();
-
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false; // ⬅️ important
-        options.User.RequireUniqueEmail = true;         // optionnel mais propre
+        options.User.RequireUniqueEmail = true; 
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
@@ -127,3 +107,25 @@ app.MapRazorComponents<App>()
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();
+
+
+// =====================
+// Stockage temporaire : 
+// =====================
+
+// Config initiale
+// var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseSqlite(connectionString));
+
+// BDD pour le Entity Framework avec PostgreSQL
+// var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+//     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+// ======================
+
+// Config initiale
+// builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+//     .AddEntityFrameworkStores<ApplicationDbContext>()
+//     .AddSignInManager()
+//     .AddDefaultTokenProviders();

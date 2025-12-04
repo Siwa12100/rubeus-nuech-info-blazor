@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
-using NuitInfo.Rubeus.Components.Account.Pages;
-using NuitInfo.Rubeus.Components.Account.Pages.Manage;
+using NuitInfo.Rubeus.Composants.Account.Pages;
+using NuitInfo.Rubeus.Composants.Account.Pages.Manage;
 using NuitInfo.Rubeus.Data;
 
 namespace Microsoft.AspNetCore.Routing;

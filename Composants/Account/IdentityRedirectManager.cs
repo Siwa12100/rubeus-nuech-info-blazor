@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 
-namespace NuitInfo.Rubeus.Components.Account;
+namespace NuitInfo.Rubeus.Composants.Account;
 
 internal sealed class IdentityRedirectManager(NavigationManager navigationManager)
 {

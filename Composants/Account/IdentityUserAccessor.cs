@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using NuitInfo.Rubeus.Data;
 
-namespace NuitInfo.Rubeus.Components.Account;
+namespace NuitInfo.Rubeus.Composants.Account;
 
 internal sealed class IdentityUserAccessor(UserManager<ApplicationUser> userManager, IdentityRedirectManager redirectManager)
 {

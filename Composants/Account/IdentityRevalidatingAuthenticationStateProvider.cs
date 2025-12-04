@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using NuitInfo.Rubeus.Data;
 
-namespace NuitInfo.Rubeus.Components.Account;
+namespace NuitInfo.Rubeus.Composants.Account;
 
 // This is a server-side AuthenticationStateProvider that revalidates the security stamp for the connected user
 // every 30 minutes an interactive circuit is connected.
