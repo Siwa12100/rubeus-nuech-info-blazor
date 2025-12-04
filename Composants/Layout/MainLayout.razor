@@ -1,4 +1,6 @@
-﻿@inherits LayoutComponentBase
+@using NuitInfo.Rubeus.Composants
+@inherits LayoutComponentBase
+@inject IJSRuntime JS
 @* Required *@
 <MudThemeProvider />
 <MudPopoverProvider />
@@ -25,6 +27,9 @@
     </main>
 </div>
 
+<!-- Snake Game Easter Egg Modal -->
+<SnakeGameModal @ref="snakeModalRef" IsOpen="@isModalOpen" />
+
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
@@ -32,3 +37,30 @@
 </div>
 
 <ChatWidget />
+
+@code {
+    private SnakeGameModal? snakeModalRef;
+    private bool isModalOpen = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Initialize snake-game.js and set up callback
+            await JS.InvokeVoidAsync("initializeSnakeEasterEgg", DotNetObjectReference.Create(this));
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    [JSInvokable]
+    public async Task OpenSnakeEasterEgg()
+    {
+        isModalOpen = true;
+        StateHasChanged();
+        
+        if (snakeModalRef != null)
+        {
+            await snakeModalRef.Open();
+        }
+    }
+}
