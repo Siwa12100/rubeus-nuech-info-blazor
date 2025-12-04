@@ -6,12 +6,15 @@ using NuitInfo.Rubeus.Composants;
 using NuitInfo.Rubeus.Composants.Account;
 using NuitInfo.Rubeus.Data;
 using NuitInfo.Rubeus.Repositories;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddMudServices();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
