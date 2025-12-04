@@ -1,0 +1,68 @@
+kind: pipeline
+type: docker
+name: build-and-deploy-rubeus-nuech-info
+
+trigger:
+  branch:
+    - main
+  event:
+    - push
+
+steps:
+  - name: "🔍 verification"
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    commands:
+      - echo "🔍 [INFO] Restauration et build du projet .NET..."
+      - dotnet restore NuitInfo.Rubeus.csproj || { echo "❌ [ERROR] Restauration échouée."; exit 1; }
+      - dotnet build NuitInfo.Rubeus.csproj -c Release || { echo "❌ [ERROR] Build échoué."; exit 1; }
+      - echo "✅ [SUCCESS] Build réussi."
+
+  - name: "📦 tests"
+    depends_on:
+      - "🔍 verification"
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    environment:
+      AUTH_STRING_POSTGREE: "Host=ecirada.valorium-mc.fr;Port=5432;Database=test;Username=test;Password=nostrecossesenpresonalucarandefuocsaldintredelasrasons"
+      AUTH_STRING_MONGO: "mongodb://test:nostrecossesenpresonalucarandefuocsaldintredelasrasons@ecirada.valorium-mc.fr:27018/test"
+      PORT_PUBLIQUE: "5010"
+    commands:
+      - echo "🧪 [INFO] Exécution des tests unitaires..."
+      - dotnet test Tests/NuitInfo.Rubeus.Tests.csproj -c Release --logger:"trx" || { echo "❌ [ERROR] Tests échoués !"; exit 1; }
+      - echo "✅ [SUCCESS] Tests réussis."
+
+  - name: "🐳 build-and-push"
+    depends_on:
+      - "📦 tests"
+    image: plugins/docker
+    settings:
+      registry: registry.davalada.valorium-mc.fr
+      repo: registry.davalada.valorium-mc.fr/rubeus-nuech-info-blazor
+      username:
+        from_secret: DOCKER_USERNAME
+      password:
+        from_secret: DOCKER_PASSWORD
+      no_cache: true
+      tags:
+        - latest
+      dockerfile: Dockerfile
+
+  - name: "🚀 deploy-vps"
+    image: appleboy/drone-ssh
+    depends_on:
+      - "🐳 build-and-push"
+    settings:
+      host: ecirada.valorium-mc.fr
+      port: 22
+      username:
+        from_secret: SSH_USER
+      ssh_key:
+        from_secret: SSH_PRIVATE_KEY
+      script:
+        - echo "🚀 [INFO] Déploiement de Rubeus NuitInfo Blazor..."
+        - cd deploiements/rubeus-nuech-info/
+        - docker compose down
+        - docker compose pull
+        - docker compose up -d
+        - sleep 5
+        - docker ps | grep rubeus-nuech-info || { echo "❌ [ERROR] Service non lancé !"; exit 1; }
+        - echo "✅ [SUCCESS] Déploiement terminé."
