@@ -38,6 +38,24 @@ public class ConfigurationEnregistrementAudio
     public int FrequenceEchantillonnage { get; set; } = 44_100;
 
     /// <summary>
+    /// Profondeur des bits audio (8, 16, 24, 32).
+    /// La valeur standard est 16 bits.
+    /// </summary>
+    public int ProfondeurBits { get; set; } = 16;
+
+    /// <summary>
+    /// Nombre de canaux audio (1 = mono, 2 = stéréo).
+    /// </summary>
+    public int NombreCanaux { get; set; } = 2;
+
+    /// <summary>
+    /// Index du périphérique audio à utiliser pour l'enregistrement.
+    /// -1 = périphérique par défaut du système.
+    /// 0, 1, 2... = index des périphériques disponibles (obtenu via NAudio).
+    /// </summary>
+    public int IndexPeripheriqueAudio { get; set; } = -1;
+
+    /// <summary>
     /// Durée maximale d'un segment d'enregistrement en minutes avant découpe automatique.
     /// 0 = pas de découpe automatique.
     /// </summary>
@@ -71,6 +89,14 @@ public class ConfigurationEnregistrementAudio
     public int DureeMinSilenceSecondes { get; set; } = 10;
 
     /// <summary>
+    /// Modèle de nommage des fichiers d'enregistrement.
+    /// </summary>
+    public ModeleNomFichier PatronNommage { get; set; } = new ModeleNomFichier
+    {
+        Patron = "%prefix%_%date%_%heure%h%minute%"
+    };
+
+    /// <summary>
     /// Valide la configuration et retourne les erreurs éventuelles.
     /// </summary>
     public List<string> Valider()
@@ -89,6 +115,15 @@ public class ConfigurationEnregistrementAudio
         if (FrequenceEchantillonnage <= 0)
             erreurs.Add("La fréquence d'échantillonnage doit être positive.");
 
+        if (ProfondeurBits != 8 && ProfondeurBits != 16 && ProfondeurBits != 24 && ProfondeurBits != 32)
+            erreurs.Add("La profondeur des bits doit être 8, 16, 24 ou 32.");
+
+        if (NombreCanaux < 1 || NombreCanaux > 2)
+            erreurs.Add("Le nombre de canaux doit être 1 (mono) ou 2 (stéréo).");
+
+        if (IndexPeripheriqueAudio < -1)
+            erreurs.Add("L'index du périphérique audio ne peut pas être inférieur à -1.");
+
         if (DureeSegmentMinutes < 0)
             erreurs.Add("La durée de segment ne peut pas être négative.");
 
@@ -98,6 +133,38 @@ public class ConfigurationEnregistrementAudio
         if (DureeMinSilenceSecondes < 0)
             erreurs.Add("La durée minimale de silence ne peut pas être négative.");
 
+        // Valider le patron de nommage
+        if (PatronNommage != null)
+        {
+            var erreursPatron = PatronNommage.Valider();
+            erreurs.AddRange(erreursPatron);
+        }
+        else
+        {
+            erreurs.Add("Le patron de nommage est obligatoire.");
+        }
+
         return erreurs;
+    }
+
+    /// <summary>
+    /// Retourne un résumé textuel de la configuration pour affichage.
+    /// </summary>
+    public string ObtenirResume()
+    {
+        return $"Projet: {NomProjet} | Stockage: {CheminBaseStockage} | " +
+               $"Format: {FormatSortie} ({FrequenceEchantillonnage} Hz, {ProfondeurBits} bits, {NombreCanaux} canaux) | " +
+               $"Conservation: {DureeConservationJours} jours";
+    }
+
+    /// <summary>
+    /// Retourne les informations sur le périphérique audio sélectionné.
+    /// </summary>
+    public string ObtenirInfoPeripherique()
+    {
+        if (IndexPeripheriqueAudio == -1)
+            return "Périphérique audio par défaut du système";
+        
+        return $"Périphérique audio #{IndexPeripheriqueAudio}";
     }
 }

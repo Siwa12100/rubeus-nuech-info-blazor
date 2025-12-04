@@ -7,6 +7,8 @@ using NuitInfo.Rubeus.Composants.Account;
 using NuitInfo.Rubeus.Data;
 using NuitInfo.Rubeus.Repositories;
 using MudBlazor.Services;
+using NuitInfo.Rubeus.RadioOccitania.Services.Interfaces;
+using NuitInfo.Rubeus.RadioOccitania.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,6 +84,11 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 
 builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+// ==========================
+// Services Radio Occitania 
+// ==========================
+builder.Services.AddSingleton<IEnregistreurAudioService, EnregistreurAudioService>();
 
 var app = builder.Build();
 

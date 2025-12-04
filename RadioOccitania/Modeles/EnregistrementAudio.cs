@@ -12,8 +12,18 @@ public class EnregistrementAudio
 
     /// <summary>
     /// Chemin absolu du fichier audio sur le système de fichiers.
+    /// Alias pour CheminComplet (compatibilité).
     /// </summary>
     public string CheminFichier { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Chemin absolu complet du fichier audio (propriété principale).
+    /// </summary>
+    public string CheminComplet
+    {
+        get => CheminFichier;
+        set => CheminFichier = value;
+    }
 
     /// <summary>
     /// Nom du fichier (sans le chemin complet) - version "friendly" pour l'affichage.
@@ -37,8 +47,16 @@ public class EnregistrementAudio
     public long TailleOctets { get; set; }
 
     /// <summary>
-    /// Date d'expiration calculée à partir de la date de début + TTL configuré.
-    /// Au-delà de cette date, le fichier peut être supprimé automatiquement.
+    /// Alias pour TailleOctets (compatibilité avec différentes parties du code).
+    /// </summary>
+    public long TailleFichierOctets
+    {
+        get => TailleOctets;
+        set => TailleOctets = value;
+    }
+
+    /// <summary>
+    /// Date d'expiration automatique du fichier.
     /// </summary>
     public DateTime DateExpiration { get; set; }
 
@@ -61,6 +79,11 @@ public class EnregistrementAudio
     /// Chemin vers le fichier de transcription complète (si stocké séparément).
     /// </summary>
     public string? CheminTranscription { get; set; }
+
+    /// <summary>
+    /// Chemin vers le fichier de synthèse/résumé (si stocké séparément).
+    /// </summary>
+    public string? CheminSynthese { get; set; }
 
     /// <summary>
     /// Message d'erreur en cas d'échec du traitement IA.

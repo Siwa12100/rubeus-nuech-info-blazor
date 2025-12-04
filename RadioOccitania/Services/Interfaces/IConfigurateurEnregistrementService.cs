@@ -3,34 +3,39 @@ using NuitInfo.Rubeus.RadioOccitania.Modeles;
 namespace NuitInfo.Rubeus.RadioOccitania.Services.Interfaces;
 
 /// <summary>
-/// Service de gestion centralisée de la configuration du module d'enregistrement audio.
-/// Responsable du chargement, sauvegarde et fourniture de la configuration aux autres services.
+/// Service de configuration de l'enregistrement audio.
 /// </summary>
 public interface IConfigurateurEnregistrementService
 {
     /// <summary>
-    /// Obtient la configuration actuelle du module d'enregistrement.
+    /// Événement déclenché lorsque la configuration est modifiée.
     /// </summary>
-    /// <returns>Configuration chargée depuis le stockage persistant.</returns>
+    event EventHandler<ConfigurationEnregistrementAudio>? ConfigurationModifiee;
+
+    /// <summary>
+    /// Obtient la configuration actuelle (depuis le cache ou le fichier).
+    /// </summary>
     ConfigurationEnregistrementAudio ObtenirConfiguration();
 
     /// <summary>
-    /// Met à jour la configuration avec de nouvelles valeurs et la persiste.
+    /// Met à jour la configuration et la sauvegarde.
     /// </summary>
-    /// <param name="nouvelleConfig">Nouvelle configuration à sauvegarder.</param>
-    /// <exception cref="ArgumentException">Si la configuration fournie n'est pas valide.</exception>
-    Task MettreAJourConfigurationAsync(ConfigurationEnregistrementAudio nouvelleConfig);
+    Task MettreAJourConfigurationAsync(ConfigurationEnregistrementAudio configuration);
 
     /// <summary>
-    /// Recharge la configuration depuis le stockage (utile après modification manuelle du fichier).
+    /// Recharge la configuration depuis le fichier.
     /// </summary>
-    Task RechargerConfigurationAsync();
+    Task<ConfigurationEnregistrementAudio> RechargerConfigurationAsync();
 
     /// <summary>
-    /// Valide la configuration actuelle et retourne les erreurs éventuelles.
+    /// Valide la configuration actuelle.
     /// </summary>
-    /// <returns>Liste des erreurs de validation (vide si valide).</returns>
     List<string> ValiderConfiguration();
+
+    /// <summary>
+    /// Valide une configuration spécifique.
+    /// </summary>
+    List<string> ValiderConfiguration(ConfigurationEnregistrementAudio configuration);
 
     /// <summary>
     /// Réinitialise la configuration aux valeurs par défaut.
@@ -38,8 +43,7 @@ public interface IConfigurateurEnregistrementService
     Task ReinitialiserConfigurationAsync();
 
     /// <summary>
-    /// Événement déclenché lorsque la configuration est modifiée.
-    /// Permet aux autres services de réagir aux changements.
+    /// Obtient la liste des périphériques audio disponibles.
     /// </summary>
-    event EventHandler<ConfigurationEnregistrementAudio>? ConfigurationModifiee;
+    List<PeripheriqueAudio> ObtenirPeripheriquesDisponibles();
 }
