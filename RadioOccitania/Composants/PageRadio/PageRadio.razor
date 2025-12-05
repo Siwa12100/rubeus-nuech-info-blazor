@@ -3,6 +3,7 @@
 
 @using NuitInfo.Rubeus.RadioOccitania.Components.ConfigEnregistrementPanel
 @namespace NuitInfo.Rubeus.RadioOccitania.Components.PageRadio
+@using NuitInfo.Rubeus.RadioOccitania.Components.ListeEnregistrementsPanel
 
 <div class="page-radio">
     <header class="page-header">
@@ -115,15 +116,18 @@
                     </button>
                 </div>
                 <div class="card-body">
-                    @* TODO: Intégrer le composant ListeEnregistrementsPanel *@
-                    <div class="placeholder-panel">
-                        <span class="placeholder-icon">📚</span>
-                        <p class="placeholder-text">Lista dels enregistraments • A venir</p>
-                        <small class="placeholder-hint">ListeEnregistrementsPanel</small>
-                    </div>
+                    <ListeEnregistrementsPanel 
+                        Enregistrements="@Enregistrements"
+                        EstEnregistrementEnCours="@EstEnregistrementEnCours"
+                        OnDemarrerEnregistrement="@DemarrerEnregistrementAsync"
+                        OnArreterEnregistrement="@ArreterEnregistrementAsync"
+                        OnRafraichir="@RafraichirEnregistrementsAsync"
+                        OnDemanderTranscription="@DemanderTranscriptionAsync"
+                        OnDemanderSynthese="@DemanderSyntheseAsync" />
                 </div>
             </div>
         </section>
+
     </div>
 
     <footer class="page-footer">

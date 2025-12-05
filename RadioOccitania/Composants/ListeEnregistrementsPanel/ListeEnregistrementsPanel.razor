@@ -1,0 +1,255 @@
+@using NuitInfo.Rubeus.RadioOccitania.Modeles
+@namespace NuitInfo.Rubeus.RadioOccitania.Components.ListeEnregistrementsPanel
+
+<div class="liste-enregistrements">
+    <div class="liste-header">
+        <div class="header-left">
+            <h3 class="liste-title">
+                <span class="liste-icon">📻</span>
+                Enregistraments Àudio
+            </h3>
+            <span class="enregistrements-count">
+                @(Enregistrements?.Count() ?? 0) enregistrament@(Enregistrements?.Count() > 1 ? "s" : "")
+            </span>
+        </div>
+
+        <div class="header-controls">
+            @* Badge d'état *@
+            <div class="etat-badge @(EstEnregistrementEnCours ? "actif" : "inactif")">
+                <span class="etat-indicator"></span>
+                <span class="etat-text">
+                    @if (EstEnregistrementEnCours)
+                    {
+                        <text>🔴 Enregistrament en cors</text>
+                    }
+                    else
+                    {
+                        <text>⚪ Prèst a enregistrar</text>
+                    }
+                </span>
+            </div>
+
+            @* Boutons de contrôle *@
+            <div class="control-buttons">
+                @if (!EstEnregistrementEnCours)
+                {
+                    <button class="btn btn-start" @onclick="DemarrerAsync">
+                        <span class="btn-icon">▶️</span>
+                        Començar
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-stop" @onclick="ArreterAsync">
+                        <span class="btn-icon">⏹️</span>
+                        Arrestar
+                    </button>
+                }
+
+                <button class="btn btn-refresh" @onclick="RafraichirAsync" disabled="@EstEnregistrementEnCours">
+                    <span class="btn-icon">🔄</span>
+                    Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="liste-body">
+        @if (Enregistrements != null && Enregistrements.Any())
+        {
+            <div class="enregistrements-grid">
+                @foreach (var enregistrement in Enregistrements.OrderByDescending(e => e.DateCreation))
+                {
+                    <div class="enregistrement-card">
+                        <div class="card-header-row">
+                            <div class="card-title-group">
+                                <h4 class="card-title">@enregistrement.NomFichier</h4>
+                                <span class="card-date">@enregistrement.DateCreation.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                            </div>
+
+                            @* Badge de statut IA *@
+                            <div class="statut-ia-badge statut-@ObtenirStatutGlobal(enregistrement).ToString().ToLower()">
+                                @ObtenirIconeStatut(enregistrement)
+                                @ObtenirLibelleStatut(enregistrement)
+                            </div>
+                        </div>
+
+                        <div class="card-metadata">
+                            <div class="metadata-item">
+                                <span class="metadata-icon">⏱️</span>
+                                <span class="metadata-label">Durada:</span>
+                                <span class="metadata-value">
+                                    @FormaterseDuree(enregistrement.Duree)
+                                </span>
+                            </div>
+
+                            <div class="metadata-item">
+                                <span class="metadata-icon">💾</span>
+                                <span class="metadata-label">Talha:</span>
+                                <span class="metadata-value">@enregistrement.TailleFormatee</span>
+                            </div>
+
+                            <div class="metadata-item">
+                                <span class="metadata-icon">📅</span>
+                                <span class="metadata-label">Expiracion:</span>
+                                <span class="metadata-value @(enregistrement.EstExpire ? "expire" : "")">
+                                    @if (enregistrement.EstExpire)
+                                    {
+                                        <text>⚠️ Expirat</text>
+                                    }
+                                    else if (enregistrement.JoursAvantExpiration <= 7)
+                                    {
+                                        <text>🔶 @enregistrement.JoursAvantExpiration jorn@(enregistrement.JoursAvantExpiration > 1 ? "s" : "")</text>
+                                    }
+                                    else
+                                    {
+                                        <text>✅ @enregistrement.JoursAvantExpiration jorns</text>
+                                    }
+                                </span>
+                            </div>
+
+                            <div class="metadata-item">
+                                <span class="metadata-icon">📂</span>
+                                <span class="metadata-label">Fichièr:</span>
+                                <span class="metadata-value">
+                                    @if (enregistrement.FichierExiste)
+                                    {
+                                        <text>✅ Disponible</text>
+                                    }
+                                    else
+                                    {
+                                        <text>❌ Mancant</text>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+
+                        @* Actions IA *@
+                        <div class="card-actions">
+                            @* Transcription *@
+                            <button class="btn-action btn-transcription"
+                                    @onclick="() => DemanderTranscriptionAsync(enregistrement)"
+                                    disabled="@(enregistrement.StatutTranscription == StatutTraitementIA.EnCours || !enregistrement.FichierExiste)">
+                                <span class="action-icon">📝</span>
+                                <span class="action-text">
+                                    @switch (enregistrement.StatutTranscription)
+                                    {
+                                        case StatutTraitementIA.NonDemarre:
+                                            <text>Transcrire</text>
+                                            break;
+                                        case StatutTraitementIA.EnCours:
+                                            <text>Transcripcion...</text>
+                                            break;
+                                        case StatutTraitementIA.Termine:
+                                            <text>✅ Transcrit</text>
+                                            break;
+                                        case StatutTraitementIA.Erreur:
+                                            <text>❌ Error</text>
+                                            break;
+                                        default:
+                                            <text>Transcrire</text>
+                                            break;
+                                    }
+                                </span>
+                            </button>
+
+                            @* Synthèse *@
+                            <button class="btn-action btn-synthese"
+                                    @onclick="() => DemanderSyntheseAsync(enregistrement)"
+                                    disabled="@(enregistrement.StatutSynthese == StatutTraitementIA.EnCours || 
+                                               enregistrement.StatutTranscription != StatutTraitementIA.Termine)">
+                                <span class="action-icon">🤖</span>
+                                <span class="action-text">
+                                    @switch (enregistrement.StatutSynthese)
+                                    {
+                                        case StatutTraitementIA.NonDemarre:
+                                            <text>Sintetizar</text>
+                                            break;
+                                        case StatutTraitementIA.EnCours:
+                                            <text>Sintèsi...</text>
+                                            break;
+                                        case StatutTraitementIA.Termine:
+                                            <text>✅ Sintetizat</text>
+                                            break;
+                                        case StatutTraitementIA.Erreur:
+                                            <text>❌ Error</text>
+                                            break;
+                                        default:
+                                            <text>Sintetizar</text>
+                                            break;
+                                    }
+                                </span>
+                            </button>
+                        </div>
+
+                        @* Affichage conditionnel des résultats *@
+                        @if (!string.IsNullOrWhiteSpace(enregistrement.CheminTranscription) && 
+                             enregistrement.StatutTranscription == StatutTraitementIA.Termine)
+                        {
+                            <div class="card-result result-transcription">
+                                <div class="result-header">
+                                    <span class="result-icon">📝</span>
+                                    <span class="result-title">Transcripcion disponibla</span>
+                                </div>
+                                <div class="result-actions">
+                                    <a href="@enregistrement.CheminTranscription" 
+                                       class="result-link" 
+                                       target="_blank">
+                                        Veire lo fichièr
+                                    </a>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(enregistrement.ResumeTexte) && 
+                             enregistrement.StatutSynthese == StatutTraitementIA.Termine)
+                        {
+                            <div class="card-result result-synthese">
+                                <div class="result-header">
+                                    <span class="result-icon">🤖</span>
+                                    <span class="result-title">Resumit IA</span>
+                                </div>
+                                <div class="result-content">
+                                    <p class="result-text">@enregistrement.ResumeTexte</p>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(enregistrement.CheminSynthese))
+                                {
+                                    <div class="result-actions">
+                                        <a href="@enregistrement.CheminSynthese" 
+                                           class="result-link" 
+                                           target="_blank">
+                                            Veire lo fichièr complet
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(enregistrement.MessageErreur))
+                        {
+                            <div class="card-result result-error">
+                                <div class="result-header">
+                                    <span class="result-icon">⚠️</span>
+                                    <span class="result-title">Error de tractament</span>
+                                </div>
+                                <div class="result-content">
+                                    <p class="result-text error-message">@enregistrement.MessageErreur</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">🎙️</div>
+                <h4 class="empty-title">Cap d'enregistrament</h4>
+                <p class="empty-text">
+                    Clicatz sus « Començar » per lançar lo primièr enregistrament.
+                </p>
+            </div>
+        }
+    </div>
+</div>

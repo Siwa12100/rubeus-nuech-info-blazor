@@ -1,0 +1,594 @@
+/* ============================================
+   📋 LISTE ENREGISTREMENTS PANEL
+   ============================================ */
+
+.liste-enregistrements {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+/* ==================== HEADER ==================== */
+
+.liste-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(6, 214, 160, 0.2);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.liste-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #06d6a0;
+}
+
+.liste-icon {
+    font-size: 1.75rem;
+}
+
+.enregistrements-count {
+    padding: 0.4rem 0.9rem;
+    background: rgba(6, 214, 160, 0.15);
+    border: 1px solid rgba(6, 214, 160, 0.3);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: #06d6a0;
+    font-weight: 600;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* ==================== ÉTAT BADGE ==================== */
+
+.etat-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.etat-badge.actif {
+    background: rgba(239, 71, 111, 0.2);
+    border: 1px solid rgba(239, 71, 111, 0.4);
+    color: #ef476f;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.etat-badge.inactif {
+    background: rgba(160, 160, 160, 0.2);
+    border: 1px solid rgba(160, 160, 160, 0.3);
+    color: #a0a0a0;
+}
+
+.etat-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+}
+
+/* ==================== CONTROL BUTTONS ==================== */
+
+.control-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-icon {
+    font-size: 1.1rem;
+}
+
+.btn-start {
+    background: linear-gradient(135deg, #06d6a0 0%, #06a67d 100%);
+    color: #1a1a2e;
+    box-shadow: 0 4px 15px rgba(6, 214, 160, 0.3);
+}
+
+.btn-start:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(6, 214, 160, 0.4);
+}
+
+.btn-stop {
+    background: linear-gradient(135deg, #ef476f 0%, #c7365a 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(239, 71, 111, 0.3);
+}
+
+.btn-stop:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 71, 111, 0.4);
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.btn-refresh {
+    background: rgba(6, 214, 160, 0.2);
+    color: #06d6a0;
+    border: 1px solid rgba(6, 214, 160, 0.4);
+}
+
+.btn-refresh:hover:not(:disabled) {
+    background: rgba(6, 214, 160, 0.3);
+    transform: rotate(180deg);
+}
+
+/* ==================== LISTE BODY ==================== */
+
+.liste-body {
+    flex: 1;
+}
+
+/* ==================== ENREGISTREMENTS GRID ==================== */
+
+.enregistrements-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.enregistrement-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.enregistrement-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(6, 214, 160, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ==================== CARD HEADER ==================== */
+
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.card-title-group {
+    flex: 1;
+    min-width: 250px;
+}
+
+.card-title {
+    margin: 0 0 0.4rem 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #e8e8e8;
+}
+
+.card-date {
+    font-size: 0.85rem;
+    color: #a0a0a0;
+    font-family: 'Courier New', monospace;
+}
+
+/* ==================== STATUT IA BADGE ==================== */
+
+.statut-ia-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.statut-nontraite {
+    background: rgba(160, 160, 160, 0.2);
+    border: 1px solid rgba(160, 160, 160, 0.3);
+    color: #a0a0a0;
+}
+
+.statut-encours {
+    background: rgba(255, 200, 87, 0.2);
+    border: 1px solid rgba(255, 200, 87, 0.3);
+    color: #ffc857;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.statut-transcrit {
+    background: rgba(6, 214, 160, 0.2);
+    border: 1px solid rgba(6, 214, 160, 0.3);
+    color: #06d6a0;
+}
+
+.statut-synthetise {
+    background: rgba(118, 188, 252, 0.2);
+    border: 1px solid rgba(118, 188, 252, 0.3);
+    color: #76bcfc;
+}
+
+.statut-erreur {
+    background: rgba(239, 71, 111, 0.2);
+    border: 1px solid rgba(239, 71, 111, 0.3);
+    color: #ef476f;
+}
+
+/* ==================== METADATA ==================== */
+
+.card-metadata {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.metadata-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.metadata-icon {
+    font-size: 1.1rem;
+}
+
+.metadata-label {
+    color: #a0a0a0;
+    font-weight: 500;
+}
+
+.metadata-value {
+    color: #e8e8e8;
+    font-weight: 600;
+}
+
+/* ==================== METADONNEES ==================== */
+
+.card-metadonnees {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: rgba(255, 200, 87, 0.1);
+    border-left: 3px solid #ffc857;
+    border-radius: 6px;
+}
+
+.metadonnee-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.metadonnee-label {
+    font-size: 0.8rem;
+    color: #ffc857;
+    font-weight: 600;
+}
+
+.metadonnee-value {
+    color: #e8e8e8;
+    font-size: 0.95rem;
+}
+
+/* ==================== TRANSCRIPTION ==================== */
+
+.card-transcription {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: rgba(6, 214, 160, 0.08);
+    border-left: 3px solid #06d6a0;
+    border-radius: 6px;
+}
+
+.transcription-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+}
+
+.transcription-icon {
+    font-size: 1.2rem;
+}
+
+.transcription-title {
+    font-weight: 600;
+    color: #06d6a0;
+    font-size: 0.95rem;
+}
+
+.transcription-confiance {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: #a0a0a0;
+}
+
+.transcription-text {
+    margin: 0;
+    color: #d0d0d0;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* ==================== RÉSUMÉ ==================== */
+
+.card-resume {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: rgba(118, 188, 252, 0.08);
+    border-left: 3px solid #76bcfc;
+    border-radius: 6px;
+}
+
+.resume-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+}
+
+.resume-icon {
+    font-size: 1.2rem;
+}
+
+.resume-title {
+    font-weight: 600;
+    color: #76bcfc;
+    font-size: 0.95rem;
+}
+
+.resume-text {
+    margin: 0 0 0.75rem 0;
+    color: #d0d0d0;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.resume-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag {
+    padding: 0.3rem 0.8rem;
+    background: rgba(118, 188, 252, 0.2);
+    border: 1px solid rgba(118, 188, 252, 0.3);
+    border-radius: 15px;
+    font-size: 0.8rem;
+    color: #76bcfc;
+    font-weight: 500;
+}
+
+/* ==================== ACTIONS ==================== */
+
+.card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    color: #e8e8e8;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-action:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.btn-action:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.action-icon {
+    font-size: 1rem;
+}
+
+.btn-action-play:hover:not(:disabled) {
+    border-color: #06d6a0;
+    color: #06d6a0;
+}
+
+.btn-action-transcription:hover:not(:disabled) {
+    border-color: #ffc857;
+    color: #ffc857;
+}
+
+.btn-action-synthese:hover:not(:disabled) {
+    border-color: #76bcfc;
+    color: #76bcfc;
+}
+
+.btn-action-delete:hover:not(:disabled) {
+    border-color: #ef476f;
+    color: #ef476f;
+}
+
+.btn-action-loading {
+    cursor: default;
+    opacity: 0.7;
+}
+
+.loading-spinner {
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ==================== EMPTY STATE ==================== */
+
+.liste-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 2px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.empty-icon {
+    font-size: 5rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.3;
+}
+
+.empty-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+    color: #a0a0a0;
+}
+
+.empty-text {
+    margin: 0;
+    max-width: 500px;
+    font-size: 1rem;
+    color: #808080;
+    line-height: 1.6;
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+    .liste-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-left,
+    .header-controls {
+        width: 100%;
+    }
+
+    .control-buttons {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .btn {
+        flex: 1;
+    }
+
+    .card-metadata {
+        grid-template-columns: 1fr;
+    }
+
+    .card-actions {
+        flex-direction: column;
+    }
+
+    .btn-action {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ==================== ANIMATIONS ==================== */
+
+.enregistrement-card {
+    animation: slideUp 0.5s ease forwards;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.enregistrement-card:nth-child(1) { animation-delay: 0.05s; }
+.enregistrement-card:nth-child(2) { animation-delay: 0.10s; }
+.enregistrement-card:nth-child(3) { animation-delay: 0.15s; }
+.enregistrement-card:nth-child(4) { animation-delay: 0.20s; }
+.enregistrement-card:nth-child(5) { animation-delay: 0.25s; }
