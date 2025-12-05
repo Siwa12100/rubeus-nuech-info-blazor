@@ -634,11 +634,12 @@
     /// <summary>
     /// Passer à la phase Montage
     /// </summary>
-    private void GoToMontage()
+      private async Task GoToMontage()
     {
         if (purchasedCount > 0)
         {
             Game.State.Phase = GamePhase.Montage;
+            await OnPhaseChanged.InvokeAsync();
         }
     }
 }
