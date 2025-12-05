@@ -17,10 +17,10 @@
                 <circle cx="100" cy="100" r="85" fill="none" stroke="#ef4444" stroke-width="25"
                         stroke-dasharray="534" stroke-dashoffset="0"/>
 
-                <!-- Zone Medium (jaune) -->
+                <!-- Zone Medium (jaune) : deux marges distinctes autour de la zone verte -->
                 <circle cx="100" cy="100" r="85" fill="none" stroke="#eab308" stroke-width="25"
                         stroke-dasharray="@_mediumDashArray" stroke-dashoffset="@_mediumDashOffset"
-                        transform="rotate(@_zoneRotation 100 100)"/>
+                        transform="rotate(@_mediumRotation 100 100)"/>
 
                 <!-- Zone Perfect (vert) -->
                 <circle cx="100" cy="100" r="85" fill="none" stroke="#22c55e" stroke-width="25"
@@ -229,8 +229,11 @@
     public EventCallback<QteResult> OnFinished { get; set; }
 
     // Configuration des zones (en pourcentage du cercle)
-    private double _perfectZoneSize = 15; // 15% du cercle
-    private double _mediumZoneSize = 30;  // 30% du cercle (15% de chaque côté du perfect)
+    // _perfectZonePercent: taille de la zone verte (Perfect) exprimée en % du cercle total.
+    // _mediumMarginPercent: marge JAUNE de chaque côté de la zone Perfect, exprimée en % du cercle total.
+    // La zone Medium totale = Perfect + 2 × MediumMargin (pour l'affichage et la détection au clic).
+    private double _perfectZonePercent = 15;      // 15% du cercle (vert)
+    private double _mediumMarginPercent = 15;     // 15% de chaque côté du perfect (jaune)
 
     // Rotation aléatoire de la zone de succès
     private double _zoneRotation = 0;
@@ -243,6 +246,7 @@
     private string _perfectDashOffset = "";
     private string _mediumDashArray = "";
     private string _mediumDashOffset = "";
+    private double _mediumRotation = 0;
 
     // Chronomètre pour synchroniser le calcul d'angle avec l'animation CSS
     private readonly Stopwatch _stopwatch = new();
@@ -261,16 +265,20 @@
         double circumference = 2 * Math.PI * 85; // 2πr
 
         // Zone Perfect
-        double perfectLength = (circumference * _perfectZoneSize) / 100;
+        double perfectLength = (circumference * _perfectZonePercent) / 100;
         _perfectDashArray = $"{perfectLength} {circumference}";
         _perfectDashOffset = "0";
 
-        // Zone Medium (englobe Perfect)
-        double mediumLength = (circumference * _mediumZoneSize) / 100;
-        _mediumDashArray = $"{mediumLength} {circumference}";
-        // Offset pour centrer Medium autour de Perfect
-        double mediumOffset = -((mediumLength - perfectLength) / 2);
-        _mediumDashOffset = $"{mediumOffset}";
+        // Zone Medium (jaune) = deux marges distinctes de part et d'autre de la zone Perfect
+        // On dessine le jaune comme: [marge] [gap=perfect] [marge] [gap=reste]
+        double marginLength = (circumference * _mediumMarginPercent) / 100; // une seule marge
+        double remainingGap = Math.Max(0, circumference - (2 * marginLength + perfectLength));
+        _mediumDashArray = $"{marginLength} {perfectLength} {marginLength} {remainingGap}";
+        _mediumDashOffset = "0";
+        // Aligner le début de la première marge exactement avant la zone Perfect
+        // Le cercle SVG commence à 3h (0°). On veut que la première marge commence à (_zoneRotation - marge)
+        double marginDeg = 360.0 * _mediumMarginPercent / 100.0;
+        _mediumRotation = (_zoneRotation - marginDeg + 360) % 360;
     }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
@@ -295,8 +303,9 @@
 
         // Normaliser les angles
         // Les tailles de zones sont exprimées en pourcentage: convertir en degrés
-        var perfectDeg = 360.0 * _perfectZoneSize / 100.0;
-        var mediumDeg = 360.0 * _mediumZoneSize / 100.0;
+        var perfectDeg = 360.0 * _perfectZonePercent / 100.0;
+        var mediumTotalPercent = _perfectZonePercent + 2 * _mediumMarginPercent;
+        var mediumDeg = 360.0 * mediumTotalPercent / 100.0;
 
         // Le SVG dessine la zone Perfect en démarrant à _zoneRotation; son centre visuel est donc à _zoneRotation + perfectDeg/2
         var zoneCenter = (_zoneRotation + perfectDeg / 2 + 360) % 360;
@@ -314,8 +323,12 @@
         {
             result = QteResult.Perfect;
         }
-        // Vérifier si dans la zone Medium
-        else if (IsAngleInRange(normalizedAngle, normalizedZoneStart, normalizedZoneEnd))
+        // Vérifier si dans la zone Medium (avec une petite tolérance pour éviter de compter jaune comme rouge)
+        else if (IsAngleInRange(
+                     normalizedAngle,
+                     // élargir très légèrement la zone jaune pour compenser les micro décalages d'affichage/temps
+                     (normalizedZoneStart - 2 + 360) % 360,
+                     (normalizedZoneEnd + 2 + 360) % 360))
         {
             result = QteResult.Medium;
         }
