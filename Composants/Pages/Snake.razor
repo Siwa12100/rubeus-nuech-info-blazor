@@ -73,37 +73,40 @@
                         <circle cx="@(gameState.SpecialFood.X + 0.5)" cy="@(gameState.SpecialFood.Y + 0.5)" r="0.35" fill="#FFD700" class="special-food"/>
                     }
 
-                    <!-- Nourriture normale -->
+                    <!-- Nourriture normale (image - book) -->
                     @if (gameState.Food != null)
                     {
-                        <circle cx="@(gameState.Food.X + 0.5)" cy="@(gameState.Food.Y + 0.5)" r="0.35" fill="#FF6B6B" class="food"/>
+                        <image x="@(gameState.Food.X - 0.3)" y="@(gameState.Food.Y - 0.3)" width="1.6" height="1.6" href="/images/1.png" preserveAspectRatio="xMidYMid meet" class="food" />
                     }
 
-                    <!-- Corps du serpent -->
+                    <!-- Corps du serpent (render body segments first so head appears above) -->
                     @if (gameState.SnakeBody.Count > 0)
                     {
-                        @for (int i = 0; i < gameState.SnakeBody.Count; i++)
+                        @for (int i = 1; i < gameState.SnakeBody.Count; i++)
                         {
                             var segment = gameState.SnakeBody[i];
-                            var isHead = i == 0;
-
-                            if (isHead)
-                            {
-                                <g class="snake-head">
-                                    <rect x="@segment.X" y="@segment.Y" width="1" height="1" fill="#00D084" rx="0.1"/>
-                                    <!-- Yeux -->
-                                    <circle cx="@(segment.X + 0.3)" cy="@(segment.Y + 0.3)" r="0.12" fill="white"/>
-                                    <circle cx="@(segment.X + 0.7)" cy="@(segment.Y + 0.3)" r="0.12" fill="white"/>
-                                    <circle cx="@(segment.X + 0.3)" cy="@(segment.Y + 0.3)" r="0.06" fill="black"/>
-                                    <circle cx="@(segment.X + 0.7)" cy="@(segment.Y + 0.3)" r="0.06" fill="black"/>
-                                </g>
-                            }
-                            else
-                            {
-                                var opacityValue = 1 - i * 0.02;
-                                <rect x="@segment.X" y="@segment.Y" width="1" height="1" fill="#4CAF50" opacity="@opacityValue" rx="0.05"/>
-                            }
+                            var opacityValue = 1 - i * 0.02;
+                            <rect x="@segment.X" y="@segment.Y" width="1" height="1" fill="#4CAF50" opacity="@opacityValue" rx="0.05"/>
                         }
+                    }
+
+                    <!-- Head rendered last so it appears above body and food -->
+                    @if (gameState.SnakeBody.Count > 0)
+                    {
+                        var head = gameState.SnakeBody[0];
+                        var angle = gameState.CurrentDirection switch
+                        {
+                            Direction.Up => -90,
+                            Direction.Down => 90,
+                            Direction.Left => 180,
+                            Direction.Right => 0,
+                            _ => 0
+                        };
+                        var adjustedAngle = angle + 90; // rotate head image 90° to the right
+                        var cx = head.X + 0.5;
+                        var cy = head.Y + 0.5;
+
+                        <image x="@(head.X - 0.4)" y="@(head.Y - 0.4)" width="1.8" height="1.8" href="/images/image.png" preserveAspectRatio="xMidYMid meet" class="snake-head-image" transform="rotate(@adjustedAngle @cx @cy)" />
                     }
                 </svg>
                 
