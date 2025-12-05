@@ -1,0 +1,181 @@
+@using NuitInfo.Rubeus.RadioOccitania.Modeles
+@namespace NuitInfo.Rubeus.RadioOccitania.Components.ConfigEnregistrementPanel
+
+<div class="config-enregistrement">
+    <div class="config-header">
+        <h3 class="config-title">
+            <span class="config-icon">⚙️</span>
+            Configuracion de l'Enregistrament
+        </h3>
+        <span class="config-badge">@(Configuration?.NomProjet ?? "Non configurat")</span>
+    </div>
+
+    <div class="config-body">
+        @if (Configuration != null)
+        {
+            <div class="config-sections">
+                @* Section Projet *@
+                <section class="config-section">
+                    <h4 class="section-title">📁 Informacions del Projècte</h4>
+                    <div class="form-group">
+                        <label class="form-label">Nom del projècte</label>
+                        @* TODO: Input bind sur Configuration.NomProjet *@
+                        <input type="text" class="form-control" placeholder="Antenne Principale" disabled />
+                        <small class="form-hint">Ex: Antenne Principale, Émission Spéciale</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Camin de stockatge</label>
+                        @* TODO: Input bind sur Configuration.CheminBaseStockage + bouton parcourir *@
+                        <input type="text" class="form-control" placeholder="C:\Enregistrements" disabled />
+                    </div>
+                </section>
+
+                @* Section Audio *@
+                <section class="config-section">
+                    <h4 class="section-title">🎤 Paramètres Àudio</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Periferic d'enregistrament</label>
+                            @* TODO: Select dropdown avec périphériques disponibles *@
+                            <select class="form-control" disabled>
+                                <option>Microphone (Realtek High Definition Audio)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Format àudio</label>
+                            @* TODO: Select pour FormatAudio (WAV, MP3) *@
+                            <select class="form-control" disabled>
+                                <option>WAV (non compressat)</option>
+                                <option>MP3 (compressat)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Frecuéncia d'escandalhatge</label>
+                            @* TODO: Select pour FrequenceEchantillonnage *@
+                            <select class="form-control" disabled>
+                                <option>44100 Hz (qualitat CD)</option>
+                                <option>48000 Hz (qualitat studio)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Bits per escandalhatge</label>
+                            @* TODO: Select pour BitsParEchantillon *@
+                            <select class="form-control" disabled>
+                                <option>16 bits</option>
+                                <option>24 bits</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nombre de canals</label>
+                        @* TODO: Radio buttons pour NombreCanaux (1=Mono, 2=Stéréo) *@
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="canaux" disabled />
+                                <span>Mono (1 canal)</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="canaux" disabled checked />
+                                <span>Estèreo (2 canals)</span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                @* Section Durée *@
+                <section class="config-section">
+                    <h4 class="section-title">⏱️ Durada & Automatizacion</h4>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" class="form-checkbox" disabled />
+                            Activar la durada maximala
+                        </label>
+                        @* TODO: Bind sur Configuration.DureeMaximaleEnMinutes *@
+                        <input type="number" class="form-control form-control-inline" placeholder="60" disabled />
+                        <span class="form-unit">minutas</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" class="form-checkbox" disabled />
+                            Activar l'arrèst automatic (silenci)
+                        </label>
+                    </div>
+                </section>
+
+                @* Section Nommage *@
+                <section class="config-section">
+                    <h4 class="section-title">📝 Patron de Nomenatge</h4>
+                    <div class="form-group">
+                        <label class="form-label">Patron de nom de fichièr</label>
+                        @* TODO: Input bind sur Configuration.ModeleNomFichier.Patron *@
+                        <input type="text" class="form-control" placeholder="%prefix%_%timestamp%" disabled />
+                        <small class="form-hint">
+                            Tokens disponibles: %prefix%, %date%, %timestamp%, %guid%
+                        </small>
+                    </div>
+                    <div class="preview-box">
+                        <span class="preview-label">Exemple:</span>
+                        <code class="preview-value">antenne_20241206_143052.wav</code>
+                    </div>
+                </section>
+
+                @* Section Stockage *@
+                <section class="config-section">
+                    <h4 class="section-title">💾 Gestion del Stockatge</h4>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" class="form-checkbox" disabled />
+                            Activar lo netejament automatic
+                        </label>
+                        @* TODO: Bind sur Configuration.ConserverDureeJours *@
+                        <input type="number" class="form-control form-control-inline" placeholder="30" disabled />
+                        <span class="form-unit">jorns</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" class="form-checkbox" disabled checked />
+                            Activar las sauvagardasautomaticas
+                        </label>
+                    </div>
+                </section>
+
+                @* Section IA *@
+                <section class="config-section">
+                    <h4 class="section-title">🤖 Integracion IA</h4>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" class="form-checkbox" disabled />
+                            Activar la transcripcion automatica
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" class="form-checkbox" disabled />
+                            Activar la sintèsi automatica
+                        </label>
+                    </div>
+                </section>
+            </div>
+        }
+        else
+        {
+            <div class="config-empty">
+                <span class="empty-icon">⚠️</span>
+                <p class="empty-text">Cap de configuracion cargada</p>
+            </div>
+        }
+    </div>
+
+    <div class="config-footer">
+        <button class="btn btn-secondary" disabled>
+            <span class="btn-icon">🔄</span>
+            Reïnicializar
+        </button>
+        <button class="btn btn-primary" @onclick="NotifierSauvegardeAsync">
+            <span class="btn-icon">💾</span>
+            Enregistrar la Configuracion
+        </button>
+    </div>
+</div>

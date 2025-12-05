@@ -12,7 +12,7 @@ namespace NuitInfo.Rubeus.RadioOccitania.Services.Implementations;
 public class StockageEnregistrementsService : IStockageEnregistrementsService
 {
     private const string NomFichierIndex = "index-enregistrements.json";
-    
+
     private readonly ILogger<StockageEnregistrementsService> _logger;
     private readonly IConfigurateurEnregistrementService _configurateur;
     private readonly JsonSerializerOptions _optionsJson;
@@ -54,83 +54,67 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
     /// <inheritdoc />
     public async Task<IEnumerable<EnregistrementAudio>> ListerEnregistrementsAsync()
     {
-        await _verrou.WaitAsync();
-        try
+        var config = _configurateur.ObtenirConfiguration();
+
+        if (!Directory.Exists(config.CheminBaseStockage))
         {
-            var config = _configurateur.ObtenirConfiguration();
-            
-            if (!Directory.Exists(config.CheminBaseStockage))
+            _logger.LogWarning("Répertoire de stockage inexistant: {Chemin}", config.CheminBaseStockage);
+            return Enumerable.Empty<EnregistrementAudio>();
+        }
+
+        // Charger l'index des métadonnées
+        var index = await ChargerIndexAsync();
+
+        // Lister tous les fichiers audio
+        var patterns = new[] { "*.wav", "*.mp3", "*.flac", "*.ogg" };
+        var fichiers = patterns
+            .SelectMany(pattern => Directory.GetFiles(config.CheminBaseStockage, pattern, SearchOption.TopDirectoryOnly))
+            .ToList();
+
+        var enregistrements = new List<EnregistrementAudio>();
+
+        foreach (var cheminFichier in fichiers)
+        {
+            try
             {
-                _logger.LogWarning("Répertoire de stockage inexistant: {Chemin}", config.CheminBaseStockage);
-                return Enumerable.Empty<EnregistrementAudio>();
-            }
+                var fichierInfo = new FileInfo(cheminFichier);
+                var nomFichier = fichierInfo.Name;
 
-            // Charger l'index des métadonnées
-            var index = await ChargerIndexAsync();
+                // Chercher dans l'index
+                var metadonnees = index.FirstOrDefault(e => e.NomFichier == nomFichier);
 
-            // Lister tous les fichiers audio
-            var patterns = new[] { "*.wav", "*.mp3", "*.flac", "*.ogg" };
-            var fichiers = patterns
-                .SelectMany(pattern => Directory.GetFiles(config.CheminBaseStockage, pattern, SearchOption.TopDirectoryOnly))
-                .ToList();
-
-            var enregistrements = new List<EnregistrementAudio>();
-
-            foreach (var cheminFichier in fichiers)
-            {
-                try
+                if (metadonnees != null)
                 {
-                    var fichierInfo = new FileInfo(cheminFichier);
-                    var nomFichier = fichierInfo.Name;
-
-                    // Chercher dans l'index
-                    var metadonnees = index.FirstOrDefault(e => e.NomFichier == nomFichier);
-
-                    if (metadonnees != null)
-                    {
-                        // Mettre à jour avec les infos du fichier réel
-                        metadonnees.CheminComplet = cheminFichier;
-                        metadonnees.TailleFichierOctets = fichierInfo.Length;
-                        enregistrements.Add(metadonnees);
-                    }
-                    else
-                    {
-                        // Créer une entrée basique si pas dans l'index
-                        var enregistrement = CreerEnregistrementDepuisFichier(fichierInfo, config);
-                        enregistrements.Add(enregistrement);
-                    }
+                    // Mettre à jour avec les infos du fichier réel
+                    metadonnees.CheminComplet = cheminFichier;
+                    metadonnees.TailleFichierOctets = fichierInfo.Length;
+                    enregistrements.Add(metadonnees);
                 }
-                catch (Exception ex)
+                else
                 {
-                    _logger.LogWarning(ex, "Erreur lors du traitement du fichier {Fichier}", cheminFichier);
+                    // Créer une entrée basique si pas dans l'index
+                    var enregistrement = CreerEnregistrementDepuisFichier(fichierInfo, config);
+                    enregistrements.Add(enregistrement);
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Erreur lors du traitement du fichier {Fichier}", cheminFichier);
+            }
+        }
 
-            _logger.LogInformation("Listage terminé: {Nombre} enregistrements trouvés", enregistrements.Count);
-            return enregistrements;
-        }
-        finally
-        {
-            _verrou.Release();
-        }
+        _logger.LogInformation("Listage terminé: {Nombre} enregistrements trouvés", enregistrements.Count);
+        return enregistrements;
     }
 
-    /// <summary>
-    /// Récupère tous les enregistrements disponibles.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<List<EnregistrementAudio>> ObtenirEnregistrementsAsync()
     {
-        try
-        {
-            return await _context.Enregistrements
-                .OrderByDescending(e => e.DateCreation)
-                .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erreur lors de la récupération de tous les enregistrements");
-            throw;
-        }
+        // Version "confort" qui renvoie directement une List triée
+        var enregistrements = await ListerEnregistrementsAsync();
+        return enregistrements
+            .OrderByDescending(e => e.DateDebut)
+            .ToList();
     }
 
     /// <inheritdoc />
@@ -156,7 +140,8 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
                 {
                     try
                     {
-                        if (File.Exists(enregistrement.CheminComplet))
+                        if (!string.IsNullOrEmpty(enregistrement.CheminComplet) &&
+                            File.Exists(enregistrement.CheminComplet))
                         {
                             File.Delete(enregistrement.CheminComplet);
                             _logger.LogInformation("Enregistrement expiré supprimé: {Nom}", enregistrement.NomFichier);
@@ -195,7 +180,7 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
         try
         {
             var enregistrement = await ObtenirEnregistrementAsync(id);
-            
+
             if (enregistrement == null)
             {
                 _logger.LogWarning("Tentative de suppression d'un enregistrement inexistant: {Id}", id);
@@ -205,7 +190,8 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
             try
             {
                 // Supprimer le fichier audio
-                if (File.Exists(enregistrement.CheminComplet))
+                if (!string.IsNullOrEmpty(enregistrement.CheminComplet) &&
+                    File.Exists(enregistrement.CheminComplet))
                 {
                     File.Delete(enregistrement.CheminComplet);
                 }
@@ -348,12 +334,15 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
     private async Task MettreAJourIndexAsync()
     {
         var index = await ChargerIndexAsync();
-        var indexNettoye = index.Where(e => File.Exists(e.CheminComplet)).ToList();
-        
+        var indexNettoye = index
+            .Where(e => !string.IsNullOrEmpty(e.CheminComplet) && File.Exists(e.CheminComplet))
+            .ToList();
+
         if (indexNettoye.Count != index.Count)
         {
             await SauvegarderIndexAsync(indexNettoye);
-            _logger.LogInformation("Index nettoyé: {Supprime} entrées obsolètes supprimées", 
+            _logger.LogInformation(
+                "Index nettoyé: {Supprime} entrées obsolètes supprimées",
                 index.Count - indexNettoye.Count);
         }
     }
@@ -388,7 +377,7 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
         try
         {
             // Supprimer le fichier de transcription
-            if (!string.IsNullOrEmpty(enregistrement.CheminTranscription) && 
+            if (!string.IsNullOrEmpty(enregistrement.CheminTranscription) &&
                 File.Exists(enregistrement.CheminTranscription))
             {
                 File.Delete(enregistrement.CheminTranscription);
@@ -396,7 +385,7 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
             }
 
             // Supprimer le fichier de synthèse
-            if (!string.IsNullOrEmpty(enregistrement.CheminSynthese) && 
+            if (!string.IsNullOrEmpty(enregistrement.CheminSynthese) &&
                 File.Exists(enregistrement.CheminSynthese))
             {
                 File.Delete(enregistrement.CheminSynthese);
@@ -408,23 +397,4 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
             _logger.LogWarning(ex, "Erreur lors de la suppression des fichiers associés");
         }
     }
-
-    /// <summary>
-    /// Obtient la liste de tous les enregistrements.
-    /// </summary>
-    public async Task<List<EnregistrementAudio>> ObtenirEnregistrementsAsync()
-    {
-        try
-        {
-            return await _context.Enregistrements
-                .OrderByDescending(e => e.DateCreation)
-                .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erreur lors de la récupération des enregistrements");
-            return new List<Enregistrement>();
-        }
-    }
-
 }

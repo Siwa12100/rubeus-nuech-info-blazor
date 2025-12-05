@@ -31,6 +31,11 @@ public interface IStockageEnregistrementsService
     Task<IEnumerable<EnregistrementAudio>> ListerEnregistrementsAsync();
 
     /// <summary>
+    /// Obtient la liste de tous les enregistrements sous forme de liste ordonnée.
+    /// </summary>
+    Task<List<EnregistrementAudio>> ObtenirEnregistrementsAsync();
+
+    /// <summary>
     /// Récupère un enregistrement spécifique par son identifiant.
     /// </summary>
     /// <param name="id">Identifiant unique de l'enregistrement.</param>
@@ -68,10 +73,4 @@ public interface IStockageEnregistrementsService
     /// </summary>
     /// <exception cref="IOException">Si le répertoire n'est pas accessible.</exception>
     Task VerifierEtCreerRepertoireStockageAsync();
-
-    /// <summary>
-    /// Obtient la liste de tous les enregistrements.
-    /// </summary>
-    Task<List<EnregistrementAudio   >> ObtenirEnregistrementsAsync();
-
 }

@@ -1,5 +1,138 @@
-@page "/RadioOccitania"
+@page "/radio"
+@using NuitInfo.Rubeus.RadioOccitania.Modeles
 
-<h1 class="test">Ensag de pagina Radio Occitania</h1>
+@using NuitInfo.Rubeus.RadioOccitania.Components.ConfigEnregistrementPanel
+@namespace NuitInfo.Rubeus.RadioOccitania.Components.PageRadio
 
-<p>Aquesta es la pagina principala per la Radio Occitania.</p>
+<div class="page-radio">
+    <header class="page-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <span class="logo-icon">🎙️</span>
+                <div class="title-group">
+                    <h1 class="page-title">Manejador de Votz</h1>
+                    <p class="page-subtitle">Radio Occitania • Gestion d'Enregistrements</p>
+                </div>
+            </div>
+            
+            @* Badge de statut en direct *@
+            <div class="status-badge @(EstEnregistrementEnCours ? "recording" : "idle")">
+                <span class="status-indicator"></span>
+                <span class="status-text">
+                    @if (EstEnregistrementEnCours)
+                    {
+                        <text>🔴 EN DIRECT</text>
+                    }
+                    else
+                    {
+                        <text>⚪ Hors antenne</text>
+                    }
+                </span>
+            </div>
+        </div>
+    </header>
+
+    @* Messages d'information et d'erreur *@
+    @if (!string.IsNullOrEmpty(MessageInfos))
+    {
+        <div class="alert alert-info">
+            <span class="alert-icon">ℹ️</span>
+            <span>@MessageInfos</span>
+            <button class="alert-close" @onclick="@(() => MessageInfos = null)">×</button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(MessageErreur))
+    {
+        <div class="alert alert-error">
+            <span class="alert-icon">⚠️</span>
+            <span>@MessageErreur</span>
+            <button class="alert-close" @onclick="@(() => MessageErreur = null)">×</button>
+        </div>
+    }
+
+    <div class="main-content">
+        @* Section État Général *@
+        <section class="etat-general">
+            <div class="card card-etat">
+                <div class="card-header">
+                    <h2 class="card-title">📊 Estat General</h2>
+                </div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Enregistrements</span>
+                            <span class="stat-value">@(Enregistrements?.Count ?? 0)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Statut</span>
+                            <span class="stat-value status-@(EstEnregistrementEnCours ? "active" : "inactive")">
+                                @(EstEnregistrementEnCours ? "Actiu" : "Inactiu")
+                            </span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Configuration</span>
+                            <span class="stat-value">@(ConfigurationCourante?.NomProjet ?? "—")</span>
+                        </div>
+                        @* <div class="stat-item">
+                            <span class="stat-label">Périphérique</span>
+                            <span class="stat-value">@(ConfigurationCourante?.NomPeripheriqueAudio ?? "—")</span>
+                        </div> *@
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        @* Section Configuration *@
+        <section class="section-config">
+            <div class="card card-config">
+                <div class="card-header">
+                    <h2 class="card-title">⚙️ Configuracion</h2>
+                </div>
+                <div class="card-body">
+                    @* TODO: Intégrer le composant ConfigEnregistrementPanel *@
+                    @* <div class="placeholder-panel">
+                        <span class="placeholder-icon">🎛️</span>
+                        <p class="placeholder-text">Panèl de configuracion • A venir</p>
+                        <small class="placeholder-hint">ConfigEnregistrementPanel</small>
+                    </div> *@
+                    <ConfigEnregistrementPanel 
+                        Configuration="@ConfigurationCourante"
+                        OnSauvegarderConfiguration="@SauvegarderConfigurationAsync" />
+
+                </div>
+            </div>
+        </section>
+
+        @* Section Liste des Enregistrements *@
+        <section class="section-enregistrements">
+            <div class="card card-liste">
+                <div class="card-header">
+                    <h2 class="card-title">📼 Enregistraments</h2>
+                    <button class="btn btn-refresh" @onclick="RafraichirEnregistrementsAsync">
+                        <span class="btn-icon">🔄</span>
+                        <span>Actualizar</span>
+                    </button>
+                </div>
+                <div class="card-body">
+                    @* TODO: Intégrer le composant ListeEnregistrementsPanel *@
+                    <div class="placeholder-panel">
+                        <span class="placeholder-icon">📚</span>
+                        <p class="placeholder-text">Lista dels enregistraments • A venir</p>
+                        <small class="placeholder-hint">ListeEnregistrementsPanel</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="page-footer">
+        <p class="footer-text">
+            <span class="footer-icon">🎵</span>
+            Radio Occitania • Manejador de Votz v1.0
+        </p>
+        <p class="footer-credits">
+            <small>Sistèma d'enregistrament automàtic • Nuit de l'Info 2024</small>
+        </p>
+    </footer>
+</div>
