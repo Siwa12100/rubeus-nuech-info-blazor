@@ -9,6 +9,7 @@ using NuitInfo.Rubeus.Repositories;
 using MudBlazor.Services;
 using NuitInfo.Rubeus.RadioOccitania.Services.Interfaces;
 using NuitInfo.Rubeus.RadioOccitania.Services.Implementations;
+using NuitInfo.Rubeus.RadioOccitania.HostedServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -108,7 +109,7 @@ builder.Services.AddHostedService<NettoyageEnregistrementsHostedService>();
 // builder.Services.AddHostedService<EnregistrementAutoHostedService>(); // Décommenter si besoin
 
 // 6. Configuration des options depuis appsettings.json
-builder.Services.Configure<ConfigurationEnregistrementAudio>(
+builder.Services.Configure<NuitInfo.Rubeus.RadioOccitania.Modeles.ConfigurationEnregistrementAudio>(
     builder.Configuration.GetSection("Enregistrement")
 );
 
