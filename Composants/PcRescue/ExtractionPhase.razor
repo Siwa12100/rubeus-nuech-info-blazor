@@ -1,0 +1,330 @@
+@using NuitInfo.Rubeus.PcRescue.Models
+@using NuitInfo.Rubeus.PcRescue.Services
+@inject PcRescueGameService Game
+
+<div class="extraction-phase">
+    <!-- HUD -->
+    <div class="hud">
+        <div class="hud-item">
+            <span class="hud-label">💰 Budget:</span>
+            <span class="hud-value">@Game.State.Budget €</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">🌱 Éco-Score:</span>
+            <span class="hud-value">@Game.State.EcoScore</span>
+        </div>
+    </div>
+
+    <h1 class="phase-title">Phase 2 - Extraction & Tri</h1>
+
+    <!-- Zone principale d'extraction et tri -->
+    <div class="main-content">
+        <!-- Zone du PC avec composants à extraire -->
+        @if (GetComponentsToExtract().Any() || GetComponentsToSort().Any())
+        {
+            <div class="pc-zone">
+                <div class="pc-interior">
+                    <img src="/pc-rescue-game/pc_vue3.png" alt="Intérieur du PC" class="pc-background"/>
+
+                    <!-- Composants à extraire -->
+                    @foreach (var component in GetComponentsToExtract())
+                    {
+                        <div class="component-clickable"
+                             style="@GetComponentPosition(component)"
+                             @onclick="() => StartQte(component)">
+                            <img src="@component.ImagePath" alt="@component.Id" class="component-image"/>
+                            <div class="component-pulse"></div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Message d'instruction -->
+                @if (GetComponentsToExtract().Any())
+                {
+                    <p class="instruction-text">
+                        ⚡ Cliquez sur un composant pour l'extraire !
+                    </p>
+                }
+            </div>
+
+            <!-- Composants extraits en attente de tri -->
+            @if (GetComponentsToSort().Any())
+            {
+                <div class="components-to-sort">
+                    <h3 class="sort-title">Composants à trier:</h3>
+                    <div class="draggable-components">
+                        @foreach (var component in GetComponentsToSort())
+                        {
+                            <div class="draggable-component"
+                                 draggable="true"
+                                 @ondragstart="() => HandleDragStart(component)"
+                                 @ondragend="HandleDragEnd">
+                                <img src="@component.ImagePath" alt="@component.Id"/>
+                                <div class="component-info">
+                                    <span class="component-name">@GetComponentName(component)</span>
+                                    <span class="component-condition @GetConditionClass(component.Condition)">
+                                        @GetConditionText(component.Condition)
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Bacs de tri -->
+                <div class="bins-zone">
+                    <h3 class="bins-title">Triez dans le bon bac:</h3>
+                    <div class="bins-container">
+                        <!-- Bac Poubelle -->
+                        <div class="bin trash @(IsDragOver("trash") ? "drag-over" : "")"
+                             @ondragover="HandleDragOver"
+                             @ondragover:preventDefault="true"
+                             @ondragleave="HandleDragLeave"
+                             @ondrop="@(() => HandleDrop("trash"))"
+                             @ondrop:preventDefault="true">
+                            <div class="bin-icon">🗑️</div>
+                            <div class="bin-label">Poubelle</div>
+                            <div class="bin-description">Déchets non recyclables</div>
+                            <div class="bin-stats">
+                                <span class="stat-eco negative">-5 éco</span>
+                                <span class="stat-money">0 €</span>
+                            </div>
+                        </div>
+
+                        <!-- Bac Recyclage -->
+                        <div class="bin recycle @(IsDragOver("recycle") ? "drag-over" : "")"
+                             @ondragover="HandleDragOver"
+                             @ondragover:preventDefault="true"
+                             @ondragleave="HandleDragLeave"
+                             @ondrop="@(() => HandleDrop("recycle"))"
+                             @ondrop:preventDefault="true">
+                            <div class="bin-icon">♻️</div>
+                            <div class="bin-label">Recyclage</div>
+                            <div class="bin-description">Matériaux recyclables</div>
+                            <div class="bin-stats">
+                                <span class="stat-eco positive">+10-15 éco</span>
+                                <span class="stat-money">+Valeur/4</span>
+                            </div>
+                        </div>
+
+                        <!-- Bac Réemploi -->
+                        <div class="bin reuse @(IsDragOver("reuse") ? "drag-over" : "")"
+                             @ondragover="HandleDragOver"
+                             @ondragover:preventDefault="true"
+                             @ondragleave="HandleDragLeave"
+                             @ondrop="@(() => HandleDrop("reuse"))"
+                             @ondrop:preventDefault="true">
+                            <div class="bin-icon">🔄</div>
+                            <div class="bin-label">Réemploi</div>
+                            <div class="bin-description">Donner une seconde vie</div>
+                            <div class="bin-stats">
+                                <span class="stat-eco positive">+15-25 éco</span>
+                                <span class="stat-money">+Valeur/2</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Tous les composants sont triés -->
+            <div class="completion-message">
+                <div class="success-icon">✅</div>
+                <h2>Extraction et tri terminés !</h2>
+                <p>Vous avez traité tous les composants avec succès.</p>
+                <button class="btn-continue" @onclick="GoToShop">
+                    Continuer vers le Shop →
+                </button>
+            </div>
+        }
+    </div>
+
+    <!-- Overlay QTE -->
+    @if (_showQte && _currentQteComponent != null)
+    {
+        <QteOverlay OnFinished="HandleQteFinished"/>
+    }
+</div>
+
+@code {
+    // Paramètre callback pour notifier le parent d'un changement de phase
+    [Parameter]
+    public EventCallback OnPhaseChanged { get; set; }
+
+    // Composant actuellement en QTE
+    private PcComponent? _currentQteComponent = null;
+
+    // Affichage de l'overlay QTE
+    private bool _showQte = false;
+
+    // Composant en cours de drag
+    private PcComponent? _draggedComponent = null;
+
+    // Bac actuellement survolé
+    private string? _currentDragOverBin = null;
+
+    /// <summary>
+    /// Récupère les composants à extraire (état InstalledOld)
+    /// </summary>
+    private IEnumerable<PcComponent> GetComponentsToExtract()
+    {
+        return Game.State.Components.Where(c => c.State == ComponentState.InstalledOld);
+    }
+
+    /// <summary>
+    /// Récupère les composants à trier (état Removed)
+    /// </summary>
+    private IEnumerable<PcComponent> GetComponentsToSort()
+    {
+        return Game.State.Components.Where(c => c.State == ComponentState.Removed);
+    }
+
+    /// <summary>
+    /// Démarre le QTE pour un composant
+    /// </summary>
+    private void StartQte(PcComponent component)
+    {
+        _currentQteComponent = component;
+        _showQte = true;
+    }
+
+    /// <summary>
+    /// Gère la fin du QTE
+    /// </summary>
+    private void HandleQteFinished(QteResult result)
+    {
+        if (_currentQteComponent != null)
+        {
+            Game.ApplyQteExtraction(_currentQteComponent, result);
+            _currentQteComponent = null;
+        }
+
+        _showQte = false;
+    }
+
+    /// <summary>
+    /// Gère le début du drag
+    /// </summary>
+    private void HandleDragStart(PcComponent component)
+    {
+        _draggedComponent = component;
+    }
+
+    /// <summary>
+    /// Gère la fin du drag
+    /// </summary>
+    private void HandleDragEnd()
+    {
+        _draggedComponent = null;
+        _currentDragOverBin = null;
+    }
+
+    /// <summary>
+    /// Gère le survol d'un bac
+    /// </summary>
+    private void HandleDragOver()
+    {
+        // Nécessaire pour permettre le drop
+    }
+
+    /// <summary>
+    /// Gère le survol d'un bac spécifique
+    /// </summary>
+    private void HandleDragLeave()
+    {
+        _currentDragOverBin = null;
+    }
+
+    /// <summary>
+    /// Gère le drop dans un bac
+    /// </summary>
+    private void HandleDrop(string binType)
+    {
+        if (_draggedComponent != null)
+        {
+            Game.ApplySorting(_draggedComponent, binType);
+            _draggedComponent = null;
+            _currentDragOverBin = null;
+        }
+    }
+
+    /// <summary>
+    /// Vérifie si un bac est actuellement survolé
+    /// </summary>
+    private bool IsDragOver(string binType)
+    {
+        return _currentDragOverBin == binType;
+    }
+
+    /// <summary>
+    /// Retourne la position d'un composant dans le PC
+    /// (Vous pouvez ajuster ces positions selon vos besoins)
+    /// </summary>
+    private string GetComponentPosition(PcComponent component)
+    {
+        return component.Slot switch
+        {
+            ComponentSlot.Gpu => "top: 65%; left: 43%;",        // GPU : milieu bas
+            ComponentSlot.Ram => "top: 20%; left: 70%;",        // RAM : haut à droite
+            ComponentSlot.Storage => "top: 82%; left: 30%;",    // Storage : bas à gauche
+            ComponentSlot.Cpu => "top: 45%; left: 40%;",        // CPU : milieu haut
+            ComponentSlot.PowerSupply => "top: 82%; left: 70%;",        // PowerSupply : bas à droite
+            _ => "top: 50%; left: 50%;"
+        };
+    }
+
+    /// <summary>
+    /// Retourne le nom d'un composant
+    /// </summary>
+    private string GetComponentName(PcComponent component)
+    {
+        return component.Slot switch
+        {
+            ComponentSlot.Gpu => "Carte Graphique",
+            ComponentSlot.Ram => "Mémoire RAM",
+            ComponentSlot.Storage => "Stockage",
+            ComponentSlot.Cpu => "Processeur",
+            ComponentSlot.PowerSupply => "Alimentation",
+            _ => "Composant"
+        };
+    }
+
+    /// <summary>
+    /// Retourne le texte de condition
+    /// </summary>
+    private string GetConditionText(ComponentCondition condition)
+    {
+        return condition switch
+        {
+            ComponentCondition.Intact => "Intact",
+            ComponentCondition.Damaged => "Endommagé",
+            ComponentCondition.Broken => "Cassé",
+            _ => "Inconnu"
+        };
+    }
+
+    /// <summary>
+    /// Retourne la classe CSS de condition
+    /// </summary>
+    private string GetConditionClass(ComponentCondition condition)
+    {
+        return condition switch
+        {
+            ComponentCondition.Intact => "condition-intact",
+            ComponentCondition.Damaged => "condition-damaged",
+            ComponentCondition.Broken => "condition-broken",
+            _ => ""
+        };
+    }
+
+    /// <summary>
+    /// Passe à la phase Shop
+    /// </summary>
+    private async Task GoToShop()
+    {
+        Game.State.Phase = GamePhase.Shop;
+        // Notifie le composant parent d'invoquer StateHasChanged()
+        await OnPhaseChanged.InvokeAsync();
+    }
+}

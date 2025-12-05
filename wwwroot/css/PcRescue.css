@@ -1,0 +1,649 @@
+/* ============================================
+   PC RESCUE GAME - OPENING PHASE STYLES
+   ============================================ */
+
+.pc-opening {
+    text-align: center;
+    padding: 20px;
+}
+
+/* Header */
+.phase-header h1 {
+    color: #667eea;
+    margin-bottom: 15px;
+    font-size: 2em;
+}
+
+.phase-description {
+    color: #666;
+    font-size: 1.1em;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto 20px;
+}
+
+.screws-counter {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 25px;
+    border-radius: 20px;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-top: 10px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.counter-label {
+    margin-right: 8px;
+}
+
+.counter-value {
+    font-size: 1.3em;
+}
+
+/* Case Container - Position relative pour les vis en absolu */
+.case-container {
+    position: relative;
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 40px;
+}
+
+.case-image {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+    pointer-events: none; /* Permet aux clics de passer à travers l'image */
+    position: relative;
+    z-index: 1; /* L'image est en arrière-plan */
+}
+
+/* Animation de tremblement quand toutes les vis sont retirées */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.case-image.shaking {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Vis - Boutons positionnés en absolu aux coins */
+.screw {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+    padding: 0;
+}
+
+.screw-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.screw:hover:not(.removing) .screw-image {
+    transform: scale(1.3) rotate(45deg);
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
+}
+
+.screw:active:not(.removing) .screw-image {
+    transform: scale(1.1) rotate(90deg);
+}
+
+/* Animation de disparition de la vis */
+.screw.removing {
+    cursor: not-allowed;
+    animation: screwRemove 0.5s ease-out forwards;
+}
+
+@keyframes screwRemove {
+    0% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+    50% {
+        transform: scale(0.8) rotate(180deg);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0) rotate(360deg);
+    }
+}
+
+/* Positionnement des vis aux 4 coins - rapprochées du centre */
+.screw-top-left {
+    top: 150px;
+    left: 200px;
+}
+
+.screw-top-right {
+    top: 150px;
+    right: 200px;
+}
+
+.screw-bottom-left {
+    bottom: 150px;
+    left: 200px;
+}
+
+.screw-bottom-right {
+    bottom: 150px;
+    right: 200px;
+}
+
+/* Message "Prêt à ouvrir" */
+.ready-message {
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #FFD54F 0%, #FFC107 100%);
+    border-radius: 10px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Animation de boîtier ouvert */
+.case-opened {
+    background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+    border: 3px solid #4CAF50;
+    border-radius: 20px;
+    padding: 60px 40px;
+    animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.opened-message {
+    text-align: center;
+}
+
+.success-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: bounce 1s ease-in-out;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-20px);
+    }
+    60% {
+        transform: translateY(-10px);
+    }
+}
+
+.opened-message h2 {
+    color: #2E7D32;
+    margin: 0 0 15px 0;
+    font-size: 2em;
+}
+
+.opened-message p {
+    color: #558B2F;
+    font-size: 1.2em;
+    margin: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .case-container {
+        padding: 20px;
+    }
+
+    .case-image {
+        max-width: 100%;
+    }
+
+    .screw {
+        width: 50px;
+        height: 50px;
+    }
+
+    .screw-top-left, .screw-top-right {
+        top: 50px;
+    }
+
+    .screw-bottom-left, .screw-bottom-right {
+        bottom: 50px;
+    }
+
+    .screw-top-left, .screw-bottom-left {
+        left: 50px;
+    }
+
+    .screw-top-right, .screw-bottom-right {
+        right: 50px;
+    }
+}
+
+/* ============================================
+   PC RESCUE GAME - EXTRACTION PHASE STYLES
+   ============================================ */
+
+.extraction-phase {
+    padding: 20px;
+    min-height: 100vh;
+}
+
+/* HUD */
+.hud {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.hud-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.hud-label {
+    opacity: 0.9;
+}
+
+.hud-value {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 15px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+/* Phase title */
+.phase-title {
+    text-align: center;
+    color: #667eea;
+    margin: 20px 0;
+    font-size: 2.2em;
+}
+
+/* Main content */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* PC Zone */
+.pc-zone {
+    margin-bottom: 40px;
+}
+
+.pc-interior {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.pc-background {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Composants cliquables */
+.component-clickable {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    transition: transform 0.3s ease;
+    z-index: 10;
+}
+
+.component-clickable:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+.component-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.5));
+}
+
+.component-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(102, 126, 234, 0.3);
+    transform: translate(-50%, -50%);
+    animation: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+}
+
+.instruction-text {
+    text-align: center;
+    font-size: 1.3em;
+    color: #667eea;
+    font-weight: bold;
+    margin-top: 20px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Components to sort */
+.components-to-sort {
+    margin: 40px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+}
+
+.sort-title {
+    text-align: center;
+    color: #667eea;
+    margin: 0 0 20px 0;
+    font-size: 1.5em;
+}
+
+.draggable-components {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.draggable-component {
+    background: white;
+    border: 3px solid #667eea;
+    border-radius: 12px;
+    padding: 15px;
+    cursor: move;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 150px;
+    text-align: center;
+}
+
+.draggable-component:hover {
+    transform: translateY(-5px) rotate(2deg);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+}
+
+.draggable-component img {
+    width: 100%;
+    height: 100px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.component-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.component-name {
+    font-weight: bold;
+    color: #374151;
+    font-size: 0.95em;
+}
+
+.component-condition {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.condition-intact {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.condition-damaged {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.condition-broken {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Bins zone */
+.bins-zone {
+    margin: 40px 0;
+}
+
+.bins-title {
+    text-align: center;
+    color: #667eea;
+    margin: 0 0 25px 0;
+    font-size: 1.5em;
+}
+
+.bins-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.bin {
+    background: white;
+    border: 4px dashed #ccc;
+    border-radius: 16px;
+    padding: 25px;
+    width: 200px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.bin:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.bin.drag-over {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+}
+
+.bin.trash {
+    border-color: #9ca3af;
+}
+
+.bin.trash:hover,
+.bin.trash.drag-over {
+    border-color: #ef4444;
+}
+
+.bin.recycle {
+    border-color: #84cc16;
+}
+
+.bin.recycle:hover,
+.bin.recycle.drag-over {
+    border-color: #22c55e;
+}
+
+.bin.reuse {
+    border-color: #3b82f6;
+}
+
+.bin.reuse:hover,
+.bin.reuse.drag-over {
+    border-color: #667eea;
+}
+
+.bin-icon {
+    font-size: 3em;
+    margin-bottom: 10px;
+}
+
+.bin-label {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.bin-description {
+    font-size: 0.9em;
+    color: #6b7280;
+    margin-bottom: 15px;
+}
+
+.bin-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.stat-eco {
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+.stat-eco.positive {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.stat-eco.negative {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.stat-money {
+    color: #92400e;
+}
+
+/* Completion message */
+.completion-message {
+    text-align: center;
+    padding: 60px 40px;
+    background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+    border: 3px solid #4CAF50;
+    border-radius: 20px;
+    animation: fadeInScale 0.5s ease-out;
+}
+
+.completion-message h2 {
+    color: #2E7D32;
+    margin: 20px 0 15px 0;
+    font-size: 2em;
+}
+
+.completion-message p {
+    color: #558B2F;
+    font-size: 1.2em;
+    margin: 0 0 30px 0;
+}
+
+.btn-continue {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.2em;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-continue:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-continue:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hud {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .phase-title {
+        font-size: 1.5em;
+    }
+
+    .component-clickable {
+        width: 100px;
+        height: 100px;
+    }
+
+    .bins-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .bin {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .draggable-component {
+        width: 120px;
+    }
+}

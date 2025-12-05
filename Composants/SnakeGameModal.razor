@@ -1,0 +1,367 @@
+@using NuitInfo.Rubeus.Modeles.SnakeGame
+@using NuitInfo.Rubeus.Repositories
+@using Microsoft.AspNetCore.Components
+@inject IJSRuntime JS
+@inject ISnakeGameEngine GameEngine
+@implements IAsyncDisposable
+
+@if (isOpen)
+{
+    <div class="snake-modal-overlay" @onclick="OnOverlayClick"></div>
+    <div class="snake-modal">
+        <div class="snake-modal-header">
+            <h2>🐍 Snake Game</h2>
+            <button class="snake-modal-close" @onclick="Close">&times;</button>
+        </div>
+
+        <div class="snake-modal-content">
+            <div class="snake-game-stats">
+                <div class="stat">
+                    <span class="stat-label">Score:</span>
+                    <span class="stat-value">@gameState?.Score</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Longueur:</span>
+                    <span class="stat-value">@gameState?.Length</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Temps:</span>
+                    <span class="stat-value">@FormatTime(gameState?.ElapsedMs ?? 0)</span>
+                </div>
+            </div>
+
+            @if (gameState != null)
+            {
+                var viewBoxValue = $"0 0 {gameState.GridWidth} {gameState.GridHeight}";
+                <div class="game-board-wrapper">
+                    <svg class="game-canvas-modal" viewBox="@viewBoxValue">
+                        <!-- Grille de fond -->
+                        <defs>
+                            <pattern id="grid-modal" width="1" height="1" patternUnits="userSpaceOnUse">
+                                <path d="M 1 0 L 0 0 0 1" fill="none" stroke="#e0e0e0" stroke-width="0.02"/>
+                            </pattern>
+                        </defs>
+                        <rect width="@gameState.GridWidth" height="@gameState.GridHeight" fill="url(#grid-modal)" stroke="#333" stroke-width="0.1"/>
+
+                        <!-- Nourriture spéciale -->
+                        @if (gameState.SpecialFood != null)
+                        {
+                            <circle cx="@(gameState.SpecialFood.X + 0.5)" cy="@(gameState.SpecialFood.Y + 0.5)" r="0.35" fill="#FFD700" class="special-food"/>
+                        }
+
+                        <!-- Nourriture normale -->
+                        @if (gameState.Food != null)
+                        {
+                            <circle cx="@(gameState.Food.X + 0.5)" cy="@(gameState.Food.Y + 0.5)" r="0.35" fill="#FF6B6B" class="food"/>
+                        }
+
+                        <!-- Corps du serpent -->
+                        @if (gameState.SnakeBody.Count > 0)
+                        {
+                            @for (int i = 0; i < gameState.SnakeBody.Count; i++)
+                            {
+                                var segment = gameState.SnakeBody[i];
+                                var isHead = i == 0;
+
+                                if (isHead)
+                                {
+                                    <g class="snake-head">
+                                        <rect x="@segment.X" y="@segment.Y" width="1" height="1" fill="#00D084" rx="0.1"/>
+                                        <!-- Yeux -->
+                                        <circle cx="@(segment.X + 0.3)" cy="@(segment.Y + 0.3)" r="0.12" fill="white"/>
+                                        <circle cx="@(segment.X + 0.7)" cy="@(segment.Y + 0.3)" r="0.12" fill="white"/>
+                                        <circle cx="@(segment.X + 0.3)" cy="@(segment.Y + 0.3)" r="0.06" fill="black"/>
+                                        <circle cx="@(segment.X + 0.7)" cy="@(segment.Y + 0.3)" r="0.06" fill="black"/>
+                                    </g>
+                                }
+                                else
+                                {
+                                    var opacityValue = 1 - i * 0.02;
+                                    <rect x="@segment.X" y="@segment.Y" width="1" height="1" fill="#4CAF50" opacity="@opacityValue" rx="0.05"/>
+                                }
+                            }
+                        }
+                    </svg>
+                    
+                    <!-- Message Game Over (overlay) -->
+                    @if (gameState.Status == GameStatus.GameOver || gameState.Status == GameStatus.Victory)
+                    {
+                        var messageText = gameState.Status == GameStatus.Victory ? "🎉 VICTOIRE!" : "💀 GAME OVER!";
+                        <div class="game-overlay">
+                            <div class="game-message">@messageText</div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="snake-modal-controls">
+                @if (gameState?.Status == GameStatus.NotStarted)
+                {
+                    <button class="btn btn-play" @onclick="StartGame">
+                        ▶ Jouer
+                    </button>
+                }
+                else if (gameState?.Status == GameStatus.Playing)
+                {
+                    <button class="btn btn-pause" @onclick="PauseGame">
+                        ⏸ Pause
+                    </button>
+                }
+                else if (gameState?.Status == GameStatus.Paused)
+                {
+                    <button class="btn btn-play" @onclick="ResumeGame">
+                        ▶ Reprendre
+                    </button>
+                }
+
+                @if (gameState?.Status == GameStatus.GameOver || gameState?.Status == GameStatus.Victory)
+                {
+                    <button class="btn btn-restart" @onclick="RestartGame">
+                        🔄 Recommencer
+                    </button>
+                }
+
+                <button class="btn btn-close-modal" @onclick="Close">
+                    ✕ Fermer
+                </button>
+            </div>
+
+            <div class="snake-instructions-modal">
+                <p><strong>Contrôles:</strong> Flèches ↑↓←→ ou WASD | Espace: Pause | Entrée: Démarrer</p>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private bool isOpen;
+    private NuitInfo.Rubeus.Modeles.SnakeGame.GameState? gameState;
+    private System.Timers.Timer? gameUpdateTimer;
+    private const int UpdateIntervalMs = 16; // ~60 FPS
+    private DotNetObjectReference<SnakeGameModal>? objRef;
+
+    protected override void OnParametersSet()
+    {
+        isOpen = IsOpen;
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        GameEngine.Initialize(GameDifficulty.Medium);
+        gameState = GameEngine.GetCurrentState();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            try
+            {
+                await JS.InvokeVoidAsync("SnakeGame.InitializeKeyboardListener", objRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing keyboard listener: {ex.Message}");
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async Task Open()
+    {
+        isOpen = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task Close()
+    {
+        isOpen = false;
+        gameUpdateTimer?.Stop();
+        await OnClose.InvokeAsync();
+    }
+
+    private void OnOverlayClick()
+    {
+        // Peut ignorer le clic sur overlay ou fermer
+    }
+
+    [JSInvokable]
+    public void HandleArrowUp()
+    {
+        if (isOpen && gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Up);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleArrowDown()
+    {
+        if (isOpen && gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Down);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleArrowLeft()
+    {
+        if (isOpen && gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Left);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleArrowRight()
+    {
+        if (isOpen && gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Right);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleW()
+    {
+        if (isOpen && gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Up);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleS()
+    {
+        if (isOpen && gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Down);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleA()
+    {
+        if (isOpen && gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Left);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleD()
+    {
+        if (isOpen && gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Right);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleEnter()
+    {
+        if (!isOpen) return;
+
+        if (gameState?.Status == GameStatus.NotStarted)
+        {
+            StartGame();
+        }
+        else if (gameState?.Status == GameStatus.GameOver || gameState?.Status == GameStatus.Victory)
+        {
+            RestartGame();
+        }
+    }
+
+    [JSInvokable]
+    public void HandleSpace()
+    {
+        if (!isOpen) return;
+
+        if (gameState?.Status == GameStatus.NotStarted)
+        {
+            StartGame();
+        }
+        else if (gameState?.Status == GameStatus.Playing)
+        {
+            PauseGame();
+        }
+        else if (gameState?.Status == GameStatus.Paused)
+        {
+            ResumeGame();
+        }
+    }
+
+    private void StartGame()
+    {
+        GameEngine.Start();
+        gameState = GameEngine.GetCurrentState();
+        StartGameLoop();
+    }
+
+    private void PauseGame()
+    {
+        GameEngine.Pause();
+        gameState = GameEngine.GetCurrentState();
+        StateHasChanged();
+    }
+
+    private void ResumeGame()
+    {
+        GameEngine.Resume();
+        gameState = GameEngine.GetCurrentState();
+        StateHasChanged();
+    }
+
+    private void RestartGame()
+    {
+        gameUpdateTimer?.Stop();
+        GameEngine.Reset();
+        gameState = GameEngine.GetCurrentState();
+        StateHasChanged();
+    }
+
+    private void StartGameLoop()
+    {
+        gameUpdateTimer = new System.Timers.Timer(UpdateIntervalMs);
+        gameUpdateTimer.Elapsed += async (s, e) =>
+        {
+            GameEngine.Update();
+            gameState = GameEngine.GetCurrentState();
+
+            await InvokeAsync(StateHasChanged);
+
+            if (gameState.Status != GameStatus.Playing)
+            {
+                gameUpdateTimer?.Stop();
+            }
+        };
+        gameUpdateTimer.Start();
+    }
+
+    private string FormatTime(long ms)
+    {
+        var totalSeconds = ms / 1000;
+        var minutes = totalSeconds / 60;
+        var seconds = totalSeconds % 60;
+        return $"{minutes:D2}:{seconds:D2}";
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (gameUpdateTimer != null)
+        {
+            gameUpdateTimer.Stop();
+            gameUpdateTimer.Dispose();
+        }
+        objRef?.Dispose();
+        await Task.CompletedTask;
+    }
+}

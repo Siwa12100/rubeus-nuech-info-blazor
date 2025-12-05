@@ -6,12 +6,15 @@ using NuitInfo.Rubeus.Composants;
 using NuitInfo.Rubeus.Composants.Account;
 using NuitInfo.Rubeus.Data;
 using NuitInfo.Rubeus.Repositories;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddMudServices();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
@@ -78,7 +81,16 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 
 
 builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+builder.Services.AddScoped<ISnakeGameEngine, SnakeGameEngine>();
+builder.Services.AddScoped<NuitInfo.Rubeus.PcRescue.Services.PcRescueGameService>();
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+// Configure HttpClient for Ollama
+builder.Services.AddHttpClient<NuitInfo.Rubeus.GastonBergeur.Services.IChatService, NuitInfo.Rubeus.GastonBergeur.Services.OllamaChatService>(client =>
+{
+    client.BaseAddress = new Uri("http://ecirada.valorium-mc.fr:11434");
+    client.Timeout = TimeSpan.FromMinutes(2);
+});
 
 var app = builder.Build();
 
@@ -105,6 +117,17 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+// Chatbot endpoint - accessible sans authentification
+app.MapPost("/api/chat", async (
+    NuitInfo.Rubeus.GastonBergeur.Dtos.ChatRequestDto request,
+    NuitInfo.Rubeus.GastonBergeur.Services.IChatService chatService,
+    CancellationToken cancellationToken) =>
+{
+    var response = await chatService.SendAsync(request, cancellationToken);
+    return Results.Ok(response);
+})
+.AllowAnonymous();
 
 app.Run();
 

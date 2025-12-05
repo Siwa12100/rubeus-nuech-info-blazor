@@ -1,0 +1,347 @@
+@page "/snake"
+@rendermode InteractiveServer
+@using NuitInfo.Rubeus.Modeles.SnakeGame
+@using NuitInfo.Rubeus.Repositories
+@inject IJSRuntime JS
+@inject ISnakeGameEngine GameEngine
+@implements IAsyncDisposable
+
+<PageTitle>Snake Game</PageTitle>
+
+<div class="snake-container" @ref="containerRef">
+    <div class="snake-header">
+        <h1>🐍 Snake Game</h1>
+        <div class="game-info">
+            <div class="info-item">
+                <span class="label">Score:</span>
+                <span class="value">@gameState?.Score</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Longueur:</span>
+                <span class="value">@gameState?.Length</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Temps:</span>
+                <span class="value">@FormatTime(gameState?.ElapsedMs ?? 0)</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Difficulté:</span>
+                <span class="value">@gameState?.Difficulty</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-controls">
+        <button class="btn btn-primary" @onclick="StartGame" disabled="@(gameState?.Status != GameStatus.NotStarted)">
+            Démarrer (ou Entrée)
+        </button>
+        <button class="btn btn-warning" @onclick="PauseResumeGame" disabled="@(gameState?.Status != GameStatus.Playing && gameState?.Status != GameStatus.Paused)">
+            @(gameState?.Status == GameStatus.Playing ? "Pause" : "Reprendre")
+        </button>
+        <button class="btn btn-danger" @onclick="ResetGame">
+            Réinitialiser
+        </button>
+
+        <div class="difficulty-selector">
+            <label>Difficulté:</label>
+            <select class="form-control" @onchange="ChangeDifficulty" disabled="@(gameState?.Status != GameStatus.NotStarted)">
+                <option value="Easy">Facile</option>
+                <option value="Medium" selected>Moyen</option>
+                <option value="Hard">Difficile</option>
+                <option value="Insane">Impossible</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="game-board-container" @ref="gameboardRef">
+        @if (gameState != null)
+        {
+            var viewBoxValue = $"0 0 {gameState.GridWidth} {gameState.GridHeight}";
+            <div class="game-board-wrapper">
+                <svg class="game-canvas" viewBox="@viewBoxValue">
+                    <!-- Grille de fond -->
+                    <defs>
+                        <pattern id="grid" width="1" height="1" patternUnits="userSpaceOnUse">
+                            <path d="M 1 0 L 0 0 0 1" fill="none" stroke="#e0e0e0" stroke-width="0.02"/>
+                        </pattern>
+                    </defs>
+                    <rect width="@gameState.GridWidth" height="@gameState.GridHeight" fill="url(#grid)" stroke="#333" stroke-width="0.1"/>
+
+                    <!-- Nourriture spéciale -->
+                    @if (gameState.SpecialFood != null)
+                    {
+                        <circle cx="@(gameState.SpecialFood.X + 0.5)" cy="@(gameState.SpecialFood.Y + 0.5)" r="0.35" fill="#FFD700" class="special-food"/>
+                    }
+
+                    <!-- Nourriture normale -->
+                    @if (gameState.Food != null)
+                    {
+                        <circle cx="@(gameState.Food.X + 0.5)" cy="@(gameState.Food.Y + 0.5)" r="0.35" fill="#FF6B6B" class="food"/>
+                    }
+
+                    <!-- Corps du serpent -->
+                    @if (gameState.SnakeBody.Count > 0)
+                    {
+                        @for (int i = 0; i < gameState.SnakeBody.Count; i++)
+                        {
+                            var segment = gameState.SnakeBody[i];
+                            var isHead = i == 0;
+
+                            if (isHead)
+                            {
+                                <g class="snake-head">
+                                    <rect x="@segment.X" y="@segment.Y" width="1" height="1" fill="#00D084" rx="0.1"/>
+                                    <!-- Yeux -->
+                                    <circle cx="@(segment.X + 0.3)" cy="@(segment.Y + 0.3)" r="0.12" fill="white"/>
+                                    <circle cx="@(segment.X + 0.7)" cy="@(segment.Y + 0.3)" r="0.12" fill="white"/>
+                                    <circle cx="@(segment.X + 0.3)" cy="@(segment.Y + 0.3)" r="0.06" fill="black"/>
+                                    <circle cx="@(segment.X + 0.7)" cy="@(segment.Y + 0.3)" r="0.06" fill="black"/>
+                                </g>
+                            }
+                            else
+                            {
+                                var opacityValue = 1 - i * 0.02;
+                                <rect x="@segment.X" y="@segment.Y" width="1" height="1" fill="#4CAF50" opacity="@opacityValue" rx="0.05"/>
+                            }
+                        }
+                    }
+                </svg>
+                
+                <!-- Message Game Over (overlay) -->
+                @if (gameState.Status == GameStatus.GameOver || gameState.Status == GameStatus.Victory)
+                {
+                    var messageText = gameState.Status == GameStatus.Victory ? "🎉 VICTOIRE!" : "💀 GAME OVER!";
+                    <div class="game-overlay">
+                        <div class="game-message">@messageText</div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="game-instructions">
+        <h3>Commandes</h3>
+        <ul>
+            <li><kbd>↑</kbd> ou <kbd>W</kbd> - Aller vers le haut</li>
+            <li><kbd>↓</kbd> ou <kbd>S</kbd> - Aller vers le bas</li>
+            <li><kbd>←</kbd> ou <kbd>A</kbd> - Aller à gauche</li>
+            <li><kbd>→</kbd> ou <kbd>D</kbd> - Aller à droite</li>
+            <li><kbd>SPACE</kbd> - Pause/Reprendre</li>
+        </ul>
+    </div>
+
+    @if (lastEvents.Count > 0)
+    {
+        <div class="game-events">
+            <h3>Derniers événements</h3>
+            <ul>
+                @foreach (var evt in lastEvents.TakeLast(5))
+                {
+                    <li>@evt.Message</li>
+                }
+            </ul>
+        </div>
+    }
+</div>
+
+@code {
+    private NuitInfo.Rubeus.Modeles.SnakeGame.GameState? gameState;
+    private List<SnakeGameEvent> lastEvents = [];
+    private ElementReference gameboardRef;
+    private ElementReference containerRef;
+    private System.Timers.Timer? gameUpdateTimer;
+    private const int UpdateIntervalMs = 16; // ~60 FPS
+    private DotNetObjectReference<Snake>? objRef;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        GameEngine.Initialize(GameDifficulty.Medium);
+        gameState = GameEngine.GetCurrentState();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            try
+            {
+                await JS.InvokeVoidAsync("SnakeGame.InitializeKeyboardListener", objRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing keyboard listener: {ex.Message}");
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    [JSInvokable]
+    public void HandleArrowUp()
+    {
+        if (gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Up);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleArrowDown()
+    {
+        if (gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Down);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleArrowLeft()
+    {
+        if (gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Left);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleArrowRight()
+    {
+        if (gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Right);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleW()
+    {
+        if (gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Up);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleS()
+    {
+        if (gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Down);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleA()
+    {
+        if (gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Left);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleD()
+    {
+        if (gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.SetNextDirection(NuitInfo.Rubeus.Modeles.SnakeGame.Direction.Right);
+        }
+    }
+
+    [JSInvokable]
+    public void HandleEnter()
+    {
+        if (gameState?.Status == GameStatus.NotStarted)
+        {
+            StartGame();
+        }
+        else if (gameState?.Status == GameStatus.GameOver || gameState?.Status == GameStatus.Victory)
+        {
+            ResetGame();
+        }
+    }
+
+    [JSInvokable]
+    public void HandleSpace()
+    {
+        PauseResumeGame();
+    }
+
+    private void StartGame()
+    {
+        GameEngine.Start();
+        gameState = GameEngine.GetCurrentState();
+        StartGameLoop();
+    }
+
+    private void PauseResumeGame()
+    {
+        if (gameState?.Status == GameStatus.Playing)
+        {
+            GameEngine.Pause();
+        }
+        else if (gameState?.Status == GameStatus.Paused)
+        {
+            GameEngine.Resume();
+        }
+        gameState = GameEngine.GetCurrentState();
+        StateHasChanged();
+    }
+
+    private void ResetGame()
+    {
+        gameUpdateTimer?.Stop();
+        GameEngine.Reset();
+        gameState = GameEngine.GetCurrentState();
+        lastEvents.Clear();
+        StateHasChanged();
+    }
+
+    private void ChangeDifficulty(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<GameDifficulty>(e.Value?.ToString(), out var difficulty))
+        {
+            GameEngine.Initialize(difficulty);
+            gameState = GameEngine.GetCurrentState();
+        }
+    }
+
+    private void StartGameLoop()
+    {
+        gameUpdateTimer = new System.Timers.Timer(UpdateIntervalMs);
+        gameUpdateTimer.Elapsed += async (s, e) =>
+        {
+            GameEngine.Update();
+            gameState = GameEngine.GetCurrentState();
+            lastEvents = GameEngine.GetEventsSinceLastUpdate();
+
+            await InvokeAsync(StateHasChanged);
+
+            if (gameState.Status != GameStatus.Playing)
+            {
+                gameUpdateTimer?.Stop();
+            }
+        };
+        gameUpdateTimer.Start();
+    }
+
+    private string FormatTime(long ms)
+    {
+        var totalSeconds = ms / 1000;
+        var minutes = totalSeconds / 60;
+        var seconds = totalSeconds % 60;
+        return $"{minutes:D2}:{seconds:D2}";
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (gameUpdateTimer != null)
+        {
+            gameUpdateTimer.Stop();
+            gameUpdateTimer.Dispose();
+        }
+        objRef?.Dispose();
+        await Task.CompletedTask;
+    }
+}
