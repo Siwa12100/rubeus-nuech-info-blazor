@@ -20,7 +20,8 @@ public enum ComponentSlot
     Cpu,
     Gpu,
     Ram,
-    Storage
+    Storage,
+    Psu
 }
 
 /// <summary>

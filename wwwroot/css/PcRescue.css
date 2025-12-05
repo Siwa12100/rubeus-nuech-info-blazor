@@ -328,8 +328,8 @@
 /* Composants cliquables */
 .component-clickable {
     position: absolute;
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     cursor: pointer;
     transform: translate(-50%, -50%);
     transition: transform 0.3s ease;
@@ -629,8 +629,8 @@
     }
 
     .component-clickable {
-        width: 60px;
-        height: 60px;
+        width: 100px;
+        height: 100px;
     }
 
     .bins-container {

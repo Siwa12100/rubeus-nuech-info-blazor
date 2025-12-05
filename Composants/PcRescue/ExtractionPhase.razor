@@ -24,7 +24,7 @@
         {
             <div class="pc-zone">
                 <div class="pc-interior">
-                    <img src="/pc-rescue-game/pc_vue1.png" alt="Intérieur du PC" class="pc-background"/>
+                    <img src="/pc-rescue-game/pc_vue3.png" alt="Intérieur du PC" class="pc-background"/>
 
                     <!-- Composants à extraire -->
                     @foreach (var component in GetComponentsToExtract())
@@ -261,10 +261,11 @@
     {
         return component.Slot switch
         {
-            ComponentSlot.Gpu => "top: 40%; left: 30%;",
-            ComponentSlot.Ram => "top: 20%; left: 50%;",
-            ComponentSlot.Storage => "top: 60%; left: 60%;",
-            ComponentSlot.Cpu => "top: 25%; left: 35%;",
+            ComponentSlot.Gpu => "top: 65%; left: 43%;",        // GPU : milieu bas
+            ComponentSlot.Ram => "top: 20%; left: 70%;",        // RAM : haut à droite
+            ComponentSlot.Storage => "top: 82%; left: 30%;",    // Storage : bas à gauche
+            ComponentSlot.Cpu => "top: 45%; left: 40%;",        // CPU : milieu haut
+            ComponentSlot.Psu => "top: 82%; left: 70%;",        // PSU : bas à droite
             _ => "top: 50%; left: 50%;"
         };
     }
@@ -280,6 +281,7 @@
             ComponentSlot.Ram => "Mémoire RAM",
             ComponentSlot.Storage => "Stockage",
             ComponentSlot.Cpu => "Processeur",
+            ComponentSlot.Psu => "Alimentation",
             _ => "Composant"
         };
     }

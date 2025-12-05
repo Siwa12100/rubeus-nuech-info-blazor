@@ -42,7 +42,7 @@ public class PcRescueGameService
             BasePerf = 30,
             BaseEco = 10,
             BaseValue = 40,
-            ImagePath = "/images/pc/old_gpu.png"
+            ImagePath = "/pc-rescue-game/gtx950.png"
         });
 
         // Création de la RAM de départ
@@ -55,7 +55,7 @@ public class PcRescueGameService
             BasePerf = 20,
             BaseEco = 15,
             BaseValue = 30,
-            ImagePath = "/images/pc/old_ram.png"
+            ImagePath = "/pc-rescue-game/DDR38Go.png"
         });
 
         // Création du Storage de départ
@@ -68,7 +68,33 @@ public class PcRescueGameService
             BasePerf = 25,
             BaseEco = 20,
             BaseValue = 35,
-            ImagePath = "/images/pc/old_storage.png"
+            ImagePath = "/pc-rescue-game/hdd256.png"
+        });
+
+        // Création du CPU de départ
+        State.Components.Add(new PcComponent
+        {
+            Id = "cpu_old",
+            Slot = ComponentSlot.Cpu,
+            State = ComponentState.InstalledOld,
+            Condition = ComponentCondition.Intact,
+            BasePerf = 35,
+            BaseEco = 12,
+            BaseValue = 50,
+            ImagePath = "/pc-rescue-game/intel_i3.png"
+        });
+
+        // Création de l'alimentation de départ
+        State.Components.Add(new PcComponent
+        {
+            Id = "psu_old",
+            Slot = ComponentSlot.Psu,
+            State = ComponentState.InstalledOld,
+            Condition = ComponentCondition.Intact,
+            BasePerf = 15,
+            BaseEco = 8,
+            BaseValue = 25,
+            ImagePath = "/pc-rescue-game/100W.png"
         });
     }
 
