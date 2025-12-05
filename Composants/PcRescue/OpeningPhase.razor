@@ -1,0 +1,136 @@
+@using NuitInfo.Rubeus.PcRescue.Models
+
+<div class="pc-opening">
+    <div class="phase-header">
+        <h1>Phase 1 - Ouverture du boîtier</h1>
+        <p class="phase-description">
+            Retirez les 4 vis aux coins du boîtier pour l'ouvrir.
+            Cliquez sur chaque vis pour la retirer.
+        </p>
+        <div class="screws-counter">
+            <span class="counter-label">Vis restantes :</span>
+            <span class="counter-value">@RemainingScrew / 4</span>
+        </div>
+    </div>
+
+    <div class="case-container">
+        @if (!_isOpened)
+        {
+            <!-- Image du boîtier -->
+            <img src="@GetCurrentCaseImage()"
+                 alt="Boîtier PC"
+                 class="case-image" />
+
+            <!-- Vis 0 -->
+            @if (!_screwsRemoved[0])
+            {
+                <div class="screw screw-top-left">
+                    <img src="/pc-rescue-game/vis.png"
+                         alt="Vis"
+                         class="screw-image"
+                         @onclick="() => HandleScrewClick(0)" />
+                </div>
+            }
+
+            <!-- Vis 1 -->
+            @if (!_screwsRemoved[1])
+            {
+                <div class="screw screw-top-right">
+                    <img src="/pc-rescue-game/vis.png"
+                         alt="Vis"
+                         class="screw-image"
+                         @onclick="() => HandleScrewClick(1)" />
+                </div>
+            }
+
+            <!-- Vis 2 -->
+            @if (!_screwsRemoved[2])
+            {
+                <div class="screw screw-bottom-left">
+                    <img src="/pc-rescue-game/vis.png"
+                         alt="Vis"
+                         class="screw-image"
+                         @onclick="() => HandleScrewClick(2)" />
+                </div>
+            }
+
+            <!-- Vis 3 -->
+            @if (!_screwsRemoved[3])
+            {
+                <div class="screw screw-bottom-right">
+                    <img src="/pc-rescue-game/vis.png"
+                         alt="Vis"
+                         class="screw-image"
+                         @onclick="() => HandleScrewClick(3)" />
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Animation de boîtier ouvert -->
+            <div class="case-opened">
+                <div class="opened-message">
+                    <div class="success-icon">✅</div>
+                    <h2>Boîtier ouvert !</h2>
+                    <p>Passons à l'extraction des composants...</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (_allScrewsRemoved && !_isOpened)
+    {
+        <div class="ready-message">
+            <p>Toutes les vis sont retirées ! Le boîtier s'ouvre...</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnFinished { get; set; }
+
+    private bool[] _screwsRemoved = new bool[4];
+    private bool _isOpened = false;
+
+    protected override void OnInitialized()
+    {
+        _screwsRemoved = new bool[] { false, false, false, false };
+        _isOpened = false;
+    }
+
+    private bool _allScrewsRemoved => _screwsRemoved.All(s => s);
+    private int RemainingScrew => _screwsRemoved.Count(s => !s);
+
+    private string GetCurrentCaseImage()
+    {
+        if (_allScrewsRemoved)
+            return "/pc-rescue-game/pc_vue3.png";
+        return "/pc-rescue-game/pc_vue2.png";
+    }
+
+    private void HandleScrewClick(int index)
+    {
+        if (_screwsRemoved[index] || _isOpened)
+            return;
+
+        _screwsRemoved[index] = true;
+        StateHasChanged();
+
+        if (_allScrewsRemoved)
+        {
+            _ = OpenCaseAsync();
+        }
+    }
+
+    private async Task OpenCaseAsync()
+    {
+        await Task.Delay(1500);
+
+        _isOpened = true;
+        StateHasChanged();
+
+        await Task.Delay(2000);
+        await OnFinished.InvokeAsync();
+    }
+}

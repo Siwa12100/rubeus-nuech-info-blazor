@@ -2,8 +2,7 @@
 @rendermode InteractiveServer
 @using NuitInfo.Rubeus.PcRescue.Models
 @using NuitInfo.Rubeus.PcRescue.Services
-@using NuitInfo.Rubeus.Components.PcRescue
-@using Microsoft.AspNetCore.Components.Web
+@using NuitInfo.Rubeus.Composants.PcRescue
 @inject PcRescueGameService Game
 
 <PageTitle>PC Rescue - Mission NIRD</PageTitle>
@@ -24,23 +23,23 @@
         @switch (Game.State.Phase)
         {
             case GamePhase.Opening:
-                <OpeningPhase OnFinished="GoToExtraction" />
+                <OpeningPhase OnFinished="GoToExtraction" @rendermode="InteractiveServer" />
                 break;
 
             case GamePhase.Extraction:
-                <ExtractionPhase />
+                <ExtractionPhase @rendermode="InteractiveServer" />
                 break;
 
             case GamePhase.Shop:
-                <ShopPhase />
+                <ShopPhase @rendermode="InteractiveServer" />
                 break;
 
             case GamePhase.Montage:
-                <MontagePhase />
+                <MontagePhase @rendermode="InteractiveServer" />
                 break;
 
             case GamePhase.Scoreboard:
-                <ScoreboardPhase />
+                <ScoreboardPhase @rendermode="InteractiveServer" />
                 break;
         }
     </div>

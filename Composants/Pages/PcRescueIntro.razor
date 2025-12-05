@@ -1,0 +1,256 @@
+@page "/pc-rescue-intro"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+
+<PageTitle>PC Rescue - Mission NIRD</PageTitle>
+
+<div class="pc-rescue-intro">
+    <div class="intro-container">
+        <!-- Header -->
+        <div class="intro-header">
+            <h1>🖥️ PC Rescue : Mission NIRD</h1>
+            <p class="intro-tagline">Sauvez un vieux PC et donnez-lui une seconde vie !</p>
+        </div>
+
+        <!-- Image du PC -->
+        <div class="intro-image-container">
+            <img src="/pc-rescue-game/pc_vue1.png"
+                 alt="PC à réparer"
+                 class="intro-pc-image" />
+        </div>
+
+        <!-- Description du jeu -->
+        <div class="intro-description">
+            <h2>Votre mission</h2>
+            <div class="mission-list">
+                <div class="mission-item">
+                    <span class="mission-icon">🔧</span>
+                    <div class="mission-text">
+                        <strong>Démontez</strong> le boîtier en retirant les vis
+                    </div>
+                </div>
+                <div class="mission-item">
+                    <span class="mission-icon">🔍</span>
+                    <div class="mission-text">
+                        <strong>Extrayez</strong> les composants du PC
+                    </div>
+                </div>
+                <div class="mission-item">
+                    <span class="mission-icon">♻️</span>
+                    <div class="mission-text">
+                        <strong>Triez</strong> écologiquement les pièces usagées
+                    </div>
+                </div>
+                <div class="mission-item">
+                    <span class="mission-icon">🛒</span>
+                    <div class="mission-text">
+                        <strong>Achetez</strong> de nouveaux composants performants
+                    </div>
+                </div>
+                <div class="mission-item">
+                    <span class="mission-icon">⚡</span>
+                    <div class="mission-text">
+                        <strong>Remontez</strong> le PC avec les nouvelles pièces
+                    </div>
+                </div>
+            </div>
+
+            <div class="intro-goals">
+                <h3>Objectifs</h3>
+                <ul>
+                    <li>💰 Gérez votre <strong>budget</strong> intelligemment</li>
+                    <li>🌱 Maximisez votre <strong>score écologique</strong></li>
+                    <li>⚡ Optimisez les <strong>performances</strong> du PC</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Bouton de démarrage -->
+        <div class="intro-action">
+            <button class="btn-start-game" @onclick="StartGame">
+                🔧 Ouvrir le boîtier
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pc-rescue-intro {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px 20px;
+    }
+
+    .intro-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .intro-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .intro-header h1 {
+        font-size: 2.5em;
+        color: #667eea;
+        margin-bottom: 10px;
+    }
+
+    .intro-tagline {
+        font-size: 1.3em;
+        color: #666;
+        font-style: italic;
+    }
+
+    .intro-image-container {
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    .intro-pc-image {
+        max-width: 400px;
+        width: 100%;
+        height: auto;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+    }
+
+    .intro-pc-image:hover {
+        transform: scale(1.05);
+    }
+
+    .intro-description {
+        margin: 40px 0;
+    }
+
+    .intro-description h2 {
+        color: #667eea;
+        font-size: 1.8em;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .mission-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .mission-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 10px;
+        transition: transform 0.2s ease;
+    }
+
+    .mission-item:hover {
+        transform: translateX(10px);
+    }
+
+    .mission-icon {
+        font-size: 2em;
+        flex-shrink: 0;
+    }
+
+    .mission-text {
+        font-size: 1.1em;
+        color: #333;
+    }
+
+    .intro-goals {
+        background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+        padding: 20px;
+        border-radius: 10px;
+        border-left: 5px solid #4CAF50;
+    }
+
+    .intro-goals h3 {
+        color: #2E7D32;
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+
+    .intro-goals ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .intro-goals li {
+        padding: 8px 0;
+        font-size: 1.1em;
+        color: #333;
+    }
+
+    .intro-action {
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    .btn-start-game {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 20px 50px;
+        font-size: 1.5em;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-start-game:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn-start-game:active {
+        transform: translateY(0);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .intro-container {
+            padding: 20px;
+        }
+
+        .intro-header h1 {
+            font-size: 1.8em;
+        }
+
+        .intro-tagline {
+            font-size: 1.1em;
+        }
+
+        .intro-pc-image {
+            max-width: 100%;
+        }
+
+        .btn-start-game {
+            padding: 15px 30px;
+            font-size: 1.2em;
+        }
+
+        .mission-text {
+            font-size: 1em;
+        }
+    }
+</style>
+
+@code {
+    private void StartGame()
+    {
+        Navigation.NavigateTo("/pc-rescue");
+    }
+}
