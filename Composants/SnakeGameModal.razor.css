@@ -1,0 +1,311 @@
+/* Modal Overlay */
+.snake-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9998;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Modal Container */
+.snake-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Modal Header */
+.snake-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.snake-modal-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.snake-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.snake-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+/* Modal Content */
+.snake-modal-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Game Stats */
+.snake-game-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.stat {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.85rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+/* Game Board Wrapper */
+.game-board-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+/* Game Canvas Modal */
+.game-canvas-modal {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+}
+
+/* Game Overlay */
+.game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    animation: fadeIn 0.3s ease-out;
+    z-index: 10;
+}
+
+.game-message {
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Modal Controls */
+.snake-modal-controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-play {
+    background: linear-gradient(135deg, #00D084 0%, #00C273 100%);
+    color: white;
+}
+
+.btn-play:hover {
+    background: linear-gradient(135deg, #00E090 0%, #00D084 100%);
+}
+
+.btn-pause {
+    background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
+    color: white;
+}
+
+.btn-pause:hover {
+    background: linear-gradient(135deg, #FFB520 0%, #FFA500 100%);
+}
+
+.btn-restart {
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
+    color: white;
+}
+
+.btn-restart:hover {
+    background: linear-gradient(135deg, #FF7D7D 0%, #FF6B6B 100%);
+}
+
+.btn-close-modal {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-close-modal:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Instructions */
+.snake-instructions-modal {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.85rem;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.snake-instructions-modal p {
+    margin: 0;
+}
+
+.snake-instructions-modal strong {
+    color: #4CAF50;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .snake-modal {
+        max-width: 95%;
+        width: 95%;
+    }
+
+    .snake-game-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .snake-modal-controls {
+        gap: 0.5rem;
+    }
+
+    .btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Food animations */
+.food {
+    animation: pulse 0.8s ease-in-out infinite;
+    filter: drop-shadow(0 2px 5px rgba(255, 107, 107, 0.5));
+}
+
+.special-food {
+    animation: specialPulse 0.6s ease-in-out infinite;
+    filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.6));
+}
+
+@keyframes pulse {
+    0%, 100% {
+        r: 0.35;
+        filter: drop-shadow(0 2px 5px rgba(255, 107, 107, 0.5));
+    }
+    50% {
+        r: 0.45;
+        filter: drop-shadow(0 2px 8px rgba(255, 107, 107, 0.8));
+    }
+}
+
+@keyframes specialPulse {
+    0%, 100% {
+        r: 0.35;
+        filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.6));
+    }
+    50% {
+        r: 0.5;
+        filter: drop-shadow(0 3px 12px rgba(255, 215, 0, 1));
+    }
+}
