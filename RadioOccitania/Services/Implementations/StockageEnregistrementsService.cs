@@ -412,7 +412,7 @@ public class StockageEnregistrementsService : IStockageEnregistrementsService
     /// <summary>
     /// Obtient la liste de tous les enregistrements.
     /// </summary>
-    public async Task<List<Enregistrement>> ObtenirEnregistrementsAsync()
+    public async Task<List<EnregistrementAudio>> ObtenirEnregistrementsAsync()
     {
         try
         {
