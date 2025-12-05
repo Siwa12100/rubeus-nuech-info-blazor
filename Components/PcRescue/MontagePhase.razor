@@ -1,0 +1,186 @@
+@using NuitInfo.Rubeus.PcRescue.Models
+@using NuitInfo.Rubeus.PcRescue.Services
+@inject PcRescueGameService Game
+
+<div class="phase-container">
+    <div class="phase-header">
+        <h1>Phase 4 - Montage du PC</h1>
+        <p class="phase-description">
+            Installez les nouveaux composants dans le PC<br/>
+            avec précaution pour maximiser les performances !
+        </p>
+    </div>
+
+    <div class="phase-content">
+        <!-- Placeholder pour la zone de montage -->
+        <div class="assembly-zone">
+            <div class="placeholder-box">
+                <h3>🔧 Zone de montage</h3>
+                <p>Interface de mini-jeu d'installation à venir</p>
+                <div class="assembly-preview">
+                    <div class="motherboard-slot">
+                        <span>🖥️</span>
+                        <p>Carte mère</p>
+                    </div>
+                    <div class="component-slots">
+                        <div class="slot">📱 GPU</div>
+                        <div class="slot">💾 RAM</div>
+                        <div class="slot">💿 Storage</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations sur l'installation -->
+        <div class="assembly-info">
+            <p class="info-text">
+                Attention : la qualité de l'installation affecte les performances finales !
+            </p>
+        </div>
+
+        <!-- Bouton temporaire pour passer à la phase suivante -->
+        <div class="action-zone">
+            <button class="btn-primary" @onclick="GoToScoreboard">
+                Voir le résultat →
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .phase-container {
+        text-align: center;
+    }
+
+    .phase-header h1 {
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .phase-description {
+        color: #666;
+        font-size: 1.1em;
+        line-height: 1.6;
+        max-width: 600px;
+        margin: 0 auto 30px;
+    }
+
+    .phase-content {
+        margin-top: 40px;
+    }
+
+    .assembly-zone {
+        margin-bottom: 30px;
+    }
+
+    .placeholder-box {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border: 2px dashed #667eea;
+        border-radius: 12px;
+        padding: 40px 30px;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .placeholder-box h3 {
+        margin: 0 0 20px 0;
+        color: #667eea;
+    }
+
+    .placeholder-box p {
+        margin: 5px 0 20px;
+        color: #666;
+    }
+
+    .assembly-preview {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .motherboard-slot {
+        background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+        border-radius: 10px;
+        padding: 30px 60px;
+        color: white;
+    }
+
+    .motherboard-slot span {
+        font-size: 60px;
+        display: block;
+    }
+
+    .motherboard-slot p {
+        margin: 10px 0 0;
+        color: white;
+        font-weight: bold;
+    }
+
+    .component-slots {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .slot {
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        padding: 20px 30px;
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .assembly-info {
+        margin-top: 20px;
+    }
+
+    .info-text {
+        font-weight: bold;
+        color: #764ba2;
+        font-size: 1.1em;
+    }
+
+    .action-zone {
+        margin-top: 40px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 1.2em;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+</style>
+
+@code {
+    /// <summary>
+    /// Passer à la phase Scoreboard
+    /// (temporaire - la vraie logique viendra avec le mini-jeu d'installation)
+    /// </summary>
+    private void GoToScoreboard()
+    {
+        // Pour l'instant, on passe directement au scoreboard
+        // Dans l'étape 3, cette transition ne se fera qu'après
+        // avoir installé tous les nouveaux composants
+        Game.State.Phase = GamePhase.Scoreboard;
+    }
+}

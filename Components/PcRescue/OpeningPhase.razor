@@ -1,0 +1,166 @@
+@using NuitInfo.Rubeus.PcRescue.Models
+
+<div class="pc-opening">
+    <div class="phase-header">
+        <h1>Phase 1 - Ouverture du boîtier</h1>
+        <p class="phase-description">
+            Retirez les 4 vis aux coins du boîtier pour l'ouvrir.
+            Cliquez sur chaque vis pour la retirer.
+        </p>
+        <div class="screws-counter">
+            <span class="counter-label">Vis restantes :</span>
+            <span class="counter-value">@RemainingScrew / 4</span>
+        </div>
+    </div>
+
+    <div class="case-container">
+        @if (!_isOpened)
+        {
+            <!-- Image du boîtier qui change selon l'état -->
+            <img src="@GetCurrentCaseImage()"
+                 alt="Boîtier PC"
+                 class="case-image @(_allScrewsRemoved ? "shaking" : "")" />
+
+            <!-- Vis aux 4 coins -->
+            @if (!_screws[0])
+            {
+                <button class="screw screw-top-left"
+                        @onclick="() => RemoveScrew(0)"
+                        title="Cliquer pour retirer la vis">
+                    <img src="/pc-rescue-game/vis.png" alt="Vis" class="screw-image" />
+                </button>
+            }
+
+            @if (!_screws[1])
+            {
+                <button class="screw screw-top-right"
+                        @onclick="() => RemoveScrew(1)"
+                        title="Cliquer pour retirer la vis">
+                    <img src="/pc-rescue-game/vis.png" alt="Vis" class="screw-image" />
+                </button>
+            }
+
+            @if (!_screws[2])
+            {
+                <button class="screw screw-bottom-left"
+                        @onclick="() => RemoveScrew(2)"
+                        title="Cliquer pour retirer la vis">
+                    <img src="/pc-rescue-game/vis.png" alt="Vis" class="screw-image" />
+                </button>
+            }
+
+            @if (!_screws[3])
+            {
+                <button class="screw screw-bottom-right"
+                        @onclick="() => RemoveScrew(3)"
+                        title="Cliquer pour retirer la vis">
+                    <img src="/pc-rescue-game/vis.png" alt="Vis" class="screw-image" />
+                </button>
+            }
+        }
+        else
+        {
+            <!-- Animation de boîtier ouvert -->
+            <div class="case-opened">
+                <div class="opened-message">
+                    <div class="success-icon">✅</div>
+                    <h2>Boîtier ouvert !</h2>
+                    <p>Passons à l'extraction des composants...</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (_allScrewsRemoved && !_isOpened)
+    {
+        <div class="ready-message">
+            <p>Toutes les vis sont retirées ! Le boîtier s'ouvre...</p>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Callback appelé lorsque la phase est terminée
+    /// </summary>
+    [Parameter]
+    public EventCallback OnFinished { get; set; }
+
+    /// <summary>
+    /// État des 4 vis (true = retirée, false = encore présente)
+    /// Index: 0=top-left, 1=top-right, 2=bottom-left, 3=bottom-right
+    /// </summary>
+    private bool[] _screws = new bool[4];
+
+    /// <summary>
+    /// Indique si au moins une vis a été retirée
+    /// </summary>
+    private bool _hasStartedRemoving => _screws.Any(s => s);
+
+    /// <summary>
+    /// Indique si toutes les vis ont été retirées
+    /// </summary>
+    private bool _allScrewsRemoved => _screws.All(s => s);
+
+    /// <summary>
+    /// Indique si le boîtier est complètement ouvert (après animation)
+    /// </summary>
+    private bool _isOpened = false;
+
+    /// <summary>
+    /// Nombre de vis restantes
+    /// </summary>
+    private int RemainingScrew => _screws.Count(s => !s);
+
+    /// <summary>
+    /// Retourne l'image du boîtier selon l'état actuel
+    /// </summary>
+    private string GetCurrentCaseImage()
+    {
+        if (_allScrewsRemoved)
+            return "/pc-rescue-game/pc_vue3.png"; // Toutes les vis retirées
+        else if (_hasStartedRemoving)
+            return "/pc-rescue-game/pc_vue2.png"; // En cours de retrait
+        else
+            return "/pc-rescue-game/pc_vue1.png"; // État initial
+    }
+
+    /// <summary>
+    /// Retirer une vis spécifique
+    /// </summary>
+    /// <param name="index">Index de la vis (0-3)</param>
+    private async Task RemoveScrew(int index)
+    {
+        if (_screws[index] || _isOpened)
+            return;
+
+        // Marquer la vis comme retirée
+        _screws[index] = true;
+        StateHasChanged();
+
+        // Si toutes les vis sont retirées, déclencher l'ouverture
+        if (_allScrewsRemoved)
+        {
+            await OpenCase();
+        }
+    }
+
+    /// <summary>
+    /// Ouvrir le boîtier et passer à la phase suivante
+    /// </summary>
+    private async Task OpenCase()
+    {
+        // Attendre un peu pour l'effet visuel (shake + message)
+        await Task.Delay(1500);
+
+        // Marquer comme ouvert (affiche l'animation de succès)
+        _isOpened = true;
+        StateHasChanged();
+
+        // Attendre un peu pour que l'utilisateur voie le message de succès
+        await Task.Delay(2000);
+
+        // Passer à la phase suivante
+        await OnFinished.InvokeAsync();
+    }
+}

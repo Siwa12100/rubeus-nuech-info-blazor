@@ -1,0 +1,111 @@
+@page "/pc-rescue"
+@rendermode InteractiveServer
+@using NuitInfo.Rubeus.PcRescue.Models
+@using NuitInfo.Rubeus.PcRescue.Services
+@using NuitInfo.Rubeus.Components.PcRescue
+@using Microsoft.AspNetCore.Components.Web
+@inject PcRescueGameService Game
+
+<PageTitle>PC Rescue - Mission NIRD</PageTitle>
+
+<div class="pc-rescue-container">
+    <!-- HUD - Affichage des scores en haut de la page -->
+    <div class="hud">
+        <h2>PC Rescue : Mission NIRD</h2>
+        <div class="hud-stats">
+            <span class="hud-item">💰 Budget : @Game.State.Budget €</span>
+            <span class="hud-item">🌱 Écologie : @Game.State.EcoScore</span>
+            <span class="hud-item">⚡ Performance : @Game.State.PerfScore</span>
+        </div>
+    </div>
+
+    <!-- Zone de jeu principale - Switch entre les phases -->
+    <div class="game-area">
+        @switch (Game.State.Phase)
+        {
+            case GamePhase.Opening:
+                <OpeningPhase OnFinished="GoToExtraction" />
+                break;
+
+            case GamePhase.Extraction:
+                <ExtractionPhase />
+                break;
+
+            case GamePhase.Shop:
+                <ShopPhase />
+                break;
+
+            case GamePhase.Montage:
+                <MontagePhase />
+                break;
+
+            case GamePhase.Scoreboard:
+                <ScoreboardPhase />
+                break;
+        }
+    </div>
+</div>
+
+<style>
+    .pc-rescue-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .hud {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .hud h2 {
+        margin: 0 0 10px 0;
+        font-size: 1.8em;
+    }
+
+    .hud-stats {
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+
+    .hud-item {
+        font-size: 1.1em;
+        font-weight: bold;
+    }
+
+    .game-area {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        min-height: 500px;
+    }
+</style>
+
+@code {
+    /// <summary>
+    /// Initialisation du jeu au chargement de la page
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        // Initialiser le jeu si ce n'est pas déjà fait
+        // (vérification basique : si pas de composants, on initialise)
+        if (Game.State.Components.Count == 0)
+        {
+            Game.Initialize();
+        }
+    }
+
+    /// <summary>
+    /// Passer de la phase Opening à Extraction
+    /// </summary>
+    private void GoToExtraction()
+    {
+        Game.State.Phase = GamePhase.Extraction;
+    }
+}

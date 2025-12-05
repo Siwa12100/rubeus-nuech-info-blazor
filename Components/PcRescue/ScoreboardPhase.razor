@@ -1,0 +1,299 @@
+@using NuitInfo.Rubeus.PcRescue.Models
+@using NuitInfo.Rubeus.PcRescue.Services
+@inject PcRescueGameService Game
+
+<div class="phase-container">
+    <div class="phase-header">
+        <h1>🏆 Mission Terminée !</h1>
+        <p class="phase-description">
+            Félicitations ! Vous avez terminé PC Rescue : Mission NIRD.<br/>
+            Voici vos résultats :
+        </p>
+    </div>
+
+    <div class="phase-content">
+        <!-- Affichage des scores finaux -->
+        <div class="scoreboard">
+            <!-- Score écologique -->
+            <div class="score-card eco-score">
+                <div class="score-icon">🌱</div>
+                <h3>Score Écologique</h3>
+                <div class="score-value">@Game.State.EcoScore</div>
+                <p class="score-label">@GetEcoRating()</p>
+            </div>
+
+            <!-- Score de performance -->
+            <div class="score-card perf-score">
+                <div class="score-icon">⚡</div>
+                <h3>Score Performance</h3>
+                <div class="score-value">@Game.State.PerfScore</div>
+                <p class="score-label">@GetPerfRating()</p>
+            </div>
+
+            <!-- Budget restant -->
+            <div class="score-card budget-score">
+                <div class="score-icon">💰</div>
+                <h3>Budget Restant</h3>
+                <div class="score-value">@Game.State.Budget €</div>
+                <p class="score-label">@GetBudgetRating()</p>
+            </div>
+        </div>
+
+        <!-- Score total et appréciation -->
+        <div class="total-score">
+            <h2>Score Total : @CalculateTotalScore()</h2>
+            <p class="rating">@GetOverallRating()</p>
+        </div>
+
+        <!-- Message de sensibilisation -->
+        <div class="eco-message">
+            <h3>💡 Le saviez-vous ?</h3>
+            <p>
+                Recycler et réutiliser les composants informatiques réduit considérablement
+                l'empreinte carbone et les déchets électroniques. Chaque geste compte pour
+                protéger notre planète !
+            </p>
+        </div>
+
+        <!-- Bouton pour rejouer -->
+        <div class="action-zone">
+            <button class="btn-primary" @onclick="RestartGame">
+                🔄 Rejouer
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .phase-container {
+        text-align: center;
+    }
+
+    .phase-header h1 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 2.5em;
+    }
+
+    .phase-description {
+        color: #666;
+        font-size: 1.1em;
+        line-height: 1.6;
+        max-width: 600px;
+        margin: 0 auto 30px;
+    }
+
+    .phase-content {
+        margin-top: 40px;
+    }
+
+    .scoreboard {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 40px;
+    }
+
+    .score-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px 40px;
+        min-width: 200px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+    }
+
+    .score-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .eco-score {
+        border: 3px solid #00b894;
+    }
+
+    .perf-score {
+        border: 3px solid #fdcb6e;
+    }
+
+    .budget-score {
+        border: 3px solid #6c5ce7;
+    }
+
+    .score-icon {
+        font-size: 50px;
+        margin-bottom: 10px;
+    }
+
+    .score-card h3 {
+        margin: 10px 0;
+        color: #2d3436;
+        font-size: 1.2em;
+    }
+
+    .score-value {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #667eea;
+        margin: 15px 0;
+    }
+
+    .score-label {
+        color: #636e72;
+        font-weight: bold;
+        margin: 0;
+    }
+
+    .total-score {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .total-score h2 {
+        margin: 0 0 10px 0;
+        font-size: 2em;
+    }
+
+    .rating {
+        margin: 0;
+        font-size: 1.3em;
+        font-weight: bold;
+    }
+
+    .eco-message {
+        background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .eco-message h3 {
+        margin: 0 0 15px 0;
+        color: #2d3436;
+    }
+
+    .eco-message p {
+        margin: 0;
+        color: #2d3436;
+        line-height: 1.6;
+    }
+
+    .action-zone {
+        margin-top: 30px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 1.2em;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+</style>
+
+@code {
+    /// <summary>
+    /// Redémarrer le jeu
+    /// </summary>
+    private void RestartGame()
+    {
+        // Réinitialiser complètement le jeu
+        Game.Initialize();
+
+        // Retourner à la phase d'ouverture
+        Game.State.Phase = GamePhase.Opening;
+    }
+
+    /// <summary>
+    /// Calculer le score total
+    /// </summary>
+    private int CalculateTotalScore()
+    {
+        // Score total = somme pondérée des différents scores
+        return (Game.State.EcoScore * 2) + Game.State.PerfScore + (Game.State.Budget / 2);
+    }
+
+    /// <summary>
+    /// Obtenir l'appréciation du score écologique
+    /// </summary>
+    private string GetEcoRating()
+    {
+        return Game.State.EcoScore switch
+        {
+            >= 100 => "Excellent !",
+            >= 70 => "Très bien",
+            >= 40 => "Bien",
+            >= 20 => "Passable",
+            _ => "À améliorer"
+        };
+    }
+
+    /// <summary>
+    /// Obtenir l'appréciation du score de performance
+    /// </summary>
+    private string GetPerfRating()
+    {
+        return Game.State.PerfScore switch
+        {
+            >= 100 => "Ultra performant !",
+            >= 70 => "Très performant",
+            >= 40 => "Performant",
+            >= 20 => "Moyen",
+            _ => "Faible"
+        };
+    }
+
+    /// <summary>
+    /// Obtenir l'appréciation du budget restant
+    /// </summary>
+    private string GetBudgetRating()
+    {
+        return Game.State.Budget switch
+        {
+            >= 80 => "Très économe !",
+            >= 50 => "Économe",
+            >= 20 => "Correct",
+            >= 0 => "Dépensier",
+            _ => "À sec !"
+        };
+    }
+
+    /// <summary>
+    /// Obtenir l'appréciation globale
+    /// </summary>
+    private string GetOverallRating()
+    {
+        int total = CalculateTotalScore();
+        return total switch
+        {
+            >= 200 => "🌟 Expert en écologie numérique !",
+            >= 150 => "🎖️ Très bon travail !",
+            >= 100 => "👍 Bon travail !",
+            >= 50 => "💪 Pas mal, continuez !",
+            _ => "📚 Réessayez pour faire mieux !"
+        };
+    }
+}

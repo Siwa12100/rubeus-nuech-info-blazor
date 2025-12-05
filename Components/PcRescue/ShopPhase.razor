@@ -1,0 +1,175 @@
+@using NuitInfo.Rubeus.PcRescue.Models
+@using NuitInfo.Rubeus.PcRescue.Services
+@inject PcRescueGameService Game
+
+<div class="phase-container">
+    <div class="phase-header">
+        <h1>Phase 3 - Shop de composants</h1>
+        <p class="phase-description">
+            Utilisez votre budget pour acheter de nouveaux composants<br/>
+            performants et écologiques pour améliorer le PC.
+        </p>
+    </div>
+
+    <div class="phase-content">
+        <!-- Affichage du budget disponible -->
+        <div class="budget-display">
+            <h3>💰 Budget disponible : @Game.State.Budget €</h3>
+        </div>
+
+        <!-- Placeholder pour le catalogue de composants -->
+        <div class="shop-catalog">
+            <div class="placeholder-box">
+                <h3>🛒 Catalogue de composants</h3>
+                <p>Interface de boutique à venir</p>
+                <div class="shop-preview">
+                    <div class="component-card">📱 GPU</div>
+                    <div class="component-card">💾 RAM</div>
+                    <div class="component-card">💿 Storage</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations sur les choix -->
+        <div class="shop-info">
+            <p class="info-text">
+                Choisissez judicieusement entre performance et écologie !
+            </p>
+        </div>
+
+        <!-- Bouton temporaire pour passer à la phase suivante -->
+        <div class="action-zone">
+            <button class="btn-primary" @onclick="GoToMontage">
+                Passer au montage →
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .phase-container {
+        text-align: center;
+    }
+
+    .phase-header h1 {
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .phase-description {
+        color: #666;
+        font-size: 1.1em;
+        line-height: 1.6;
+        max-width: 600px;
+        margin: 0 auto 30px;
+    }
+
+    .phase-content {
+        margin-top: 40px;
+    }
+
+    .budget-display {
+        background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .budget-display h3 {
+        margin: 0;
+        color: #2d3436;
+    }
+
+    .shop-catalog {
+        margin-bottom: 30px;
+    }
+
+    .placeholder-box {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border: 2px dashed #667eea;
+        border-radius: 12px;
+        padding: 40px 30px;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .placeholder-box h3 {
+        margin: 0 0 20px 0;
+        color: #667eea;
+    }
+
+    .placeholder-box p {
+        margin: 5px 0 20px;
+        color: #666;
+    }
+
+    .shop-preview {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .component-card {
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        padding: 30px 40px;
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .shop-info {
+        margin-top: 20px;
+    }
+
+    .info-text {
+        font-weight: bold;
+        color: #764ba2;
+        font-size: 1.1em;
+    }
+
+    .action-zone {
+        margin-top: 40px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 1.2em;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+</style>
+
+@code {
+    /// <summary>
+    /// Passer à la phase Montage
+    /// (temporaire - la vraie logique viendra avec l'interface de shop)
+    /// </summary>
+    private void GoToMontage()
+    {
+        // Pour l'instant, on passe directement au montage
+        // Dans l'étape 3, cette transition ne se fera qu'après
+        // avoir acheté au moins un composant
+        Game.State.Phase = GamePhase.Montage;
+    }
+}
