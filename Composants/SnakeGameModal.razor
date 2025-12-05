@@ -37,8 +37,8 @@
                     <svg class="game-canvas-modal" viewBox="@viewBoxValue">
                             <!-- Grille de fond - image tile with subtle prison bars -->
                             <defs>
-                                <pattern id="grid-modal" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
-                                    <image href="/images/Prison.png" x="0" y="0" width="4" height="4" preserveAspectRatio="none" />
+                                <pattern id="grid-modal" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+                                    <image href="/images/Prison.png" x="0" y="0" width="6" height="6" preserveAspectRatio="none" />
                                 </pattern>
                             </defs>
                             <rect width="@gameState.GridWidth" height="@gameState.GridHeight" fill="#151515" stroke="#333" stroke-width="0.1"/>
@@ -63,7 +63,21 @@
                             {
                                 var segment = gameState.SnakeBody[i];
                                 var opacityValue = 1 - i * 0.02;
-                                <rect x="@segment.X" y="@segment.Y" width="1" height="1" fill="#4CAF50" opacity="@opacityValue" rx="0.05"/>
+                                var prev = gameState.SnakeBody[i - 1];
+                                var dx = prev.X - segment.X;
+                                var dy = prev.Y - segment.Y;
+                                var segAngle = dx == 1 ? 0 : dx == -1 ? 180 : dy == 1 ? 90 : dy == -1 ? -90 : 0;
+                                var adjustedSegAngle = segAngle + 90;
+                                var cx = segment.X + 0.5;
+                                var cy = segment.Y + 0.5;
+                                if (i == gameState.SnakeBody.Count - 1)
+                                {
+                                    <image x="@segment.X" y="@segment.Y" width="1" height="1" href="/images/tail.png" preserveAspectRatio="xMidYMid meet" opacity="@opacityValue" class="snake-tail" transform="rotate(@adjustedSegAngle @cx @cy)" />
+                                }
+                                else
+                                {
+                                    <image x="@segment.X" y="@segment.Y" width="1" height="1" href="/images/middle.png" preserveAspectRatio="xMidYMid meet" opacity="@opacityValue" class="snake-middle" transform="rotate(@adjustedSegAngle @cx @cy)" />
+                                }
                             }
                         }
 
