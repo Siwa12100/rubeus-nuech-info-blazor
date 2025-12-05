@@ -1,0 +1,244 @@
+@using NuitInfo.Rubeus.PcRescue.Models
+@implements IDisposable
+
+<div class="qte-overlay" @onclick="HandleClick">
+    <div class="qte-container">
+        <h2 class="qte-title">Extraction en cours...</h2>
+        <p class="qte-instruction">Cliquez quand l'indicateur est dans la zone verte !</p>
+
+        <div class="qte-circle">
+            <!-- Zone de succès (arc vert) -->
+            <svg class="qte-svg" viewBox="0 0 200 200">
+                <!-- Cercle de fond -->
+                <circle cx="100" cy="100" r="80" fill="none" stroke="#ddd" stroke-width="20"/>
+
+                <!-- Zone de succès (Perfect - vert foncé) -->
+                <path d="@GetArcPath(100, 100, 80, _perfectZoneStart, _perfectZoneEnd)"
+                      fill="none" stroke="#22c55e" stroke-width="20"/>
+
+                <!-- Zone de succès (Medium - vert clair) -->
+                <path d="@GetArcPath(100, 100, 80, _mediumZoneStart, _perfectZoneStart)"
+                      fill="none" stroke="#84cc16" stroke-width="20"/>
+                <path d="@GetArcPath(100, 100, 80, _perfectZoneEnd, _mediumZoneEnd)"
+                      fill="none" stroke="#84cc16" stroke-width="20"/>
+
+                <!-- Indicateur rotatif (ligne rouge) -->
+                <line x1="100" y1="100"
+                      x2="@(100 + 90 * Math.Cos(_currentAngle * Math.PI / 180))"
+                      y2="@(100 + 90 * Math.Sin(_currentAngle * Math.PI / 180))"
+                      stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
+
+                <!-- Point central -->
+                <circle cx="100" cy="100" r="8" fill="#374151"/>
+            </svg>
+        </div>
+
+        <div class="qte-legend">
+            <div class="legend-item">
+                <span class="legend-color perfect"></span>
+                <span>Parfait</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color medium"></span>
+                <span>Moyen</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color fail"></span>
+                <span>Raté</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .qte-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        cursor: pointer;
+    }
+
+    .qte-container {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+    }
+
+    .qte-title {
+        color: #374151;
+        margin: 0 0 10px 0;
+        font-size: 1.8em;
+    }
+
+    .qte-instruction {
+        color: #6b7280;
+        margin: 0 0 30px 0;
+        font-size: 1.1em;
+    }
+
+    .qte-circle {
+        margin: 0 auto 30px;
+        width: 300px;
+        height: 300px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .qte-svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .qte-legend {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.95em;
+        color: #374151;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+
+    .legend-color.perfect {
+        background: #22c55e;
+    }
+
+    .legend-color.medium {
+        background: #84cc16;
+    }
+
+    .legend-color.fail {
+        background: #ef4444;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public EventCallback<QteResult> OnFinished { get; set; }
+
+    // Angle actuel de l'indicateur (en degrés)
+    private double _currentAngle = 0;
+
+    // Zones de succès (en degrés, 0° = droite, sens horaire)
+    private double _perfectZoneStart = 45;
+    private double _perfectZoneEnd = 75;
+    private double _mediumZoneStart = 25;
+    private double _mediumZoneEnd = 95;
+
+    // Timer pour l'animation
+    private System.Threading.Timer? _timer;
+    private double _angleSpeed = 3; // degrés par frame
+
+    protected override void OnInitialized()
+    {
+        // Randomiser la position de la zone de succès
+        var random = new Random();
+        _perfectZoneStart = random.Next(0, 360);
+        _perfectZoneEnd = _perfectZoneStart + 30;
+        _mediumZoneStart = _perfectZoneStart - 20;
+        _mediumZoneEnd = _perfectZoneEnd + 20;
+
+        // Démarrer l'animation
+        _timer = new System.Threading.Timer(UpdateAngle, null, 0, 16); // ~60 FPS
+    }
+
+    private void UpdateAngle(object? state)
+    {
+        _currentAngle += _angleSpeed;
+        if (_currentAngle >= 360)
+            _currentAngle -= 360;
+
+        // Demander un re-render
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleClick()
+    {
+        // Arrêter le timer
+        _timer?.Dispose();
+        _timer = null;
+
+        // Calculer le résultat selon l'angle actuel
+        var result = CalculateResult(_currentAngle);
+
+        // Notifier le parent
+        await OnFinished.InvokeAsync(result);
+    }
+
+    private QteResult CalculateResult(double angle)
+    {
+        // Normaliser l'angle pour gérer les zones qui passent par 0°
+        var normalizedAngle = angle;
+        var normalizedPerfectStart = _perfectZoneStart;
+        var normalizedPerfectEnd = _perfectZoneEnd;
+        var normalizedMediumStart = _mediumZoneStart;
+        var normalizedMediumEnd = _mediumZoneEnd;
+
+        // Gérer le cas où la zone traverse 0°
+        if (normalizedMediumStart < 0)
+        {
+            normalizedMediumStart += 360;
+            normalizedPerfectStart += 360;
+            normalizedPerfectEnd += 360;
+            normalizedMediumEnd += 360;
+            if (normalizedAngle < 180)
+                normalizedAngle += 360;
+        }
+
+        // Vérifier dans quelle zone se trouve l'angle
+        if (normalizedAngle >= normalizedPerfectStart && normalizedAngle <= normalizedPerfectEnd)
+            return QteResult.Perfect;
+
+        if (normalizedAngle >= normalizedMediumStart && normalizedAngle <= normalizedMediumEnd)
+            return QteResult.Medium;
+
+        return QteResult.Fail;
+    }
+
+    private string GetArcPath(double cx, double cy, double radius, double startAngle, double endAngle)
+    {
+        // Convertir les angles en radians
+        var startRad = startAngle * Math.PI / 180;
+        var endRad = endAngle * Math.PI / 180;
+
+        // Calculer les points de début et de fin
+        var x1 = cx + radius * Math.Cos(startRad);
+        var y1 = cy + radius * Math.Sin(startRad);
+        var x2 = cx + radius * Math.Cos(endRad);
+        var y2 = cy + radius * Math.Sin(endRad);
+
+        // Déterminer si l'arc est grand (> 180°)
+        var largeArcFlag = (endAngle - startAngle) > 180 ? 1 : 0;
+
+        // Retourner le path SVG
+        return $"M {x1:F2} {y1:F2} A {radius} {radius} 0 {largeArcFlag} 1 {x2:F2} {y2:F2}";
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}
