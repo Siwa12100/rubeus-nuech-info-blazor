@@ -42,6 +42,26 @@ public class EnregistrementAudio
     public DateTime? DateFin { get; set; }
 
     /// <summary>
+    /// Date de création de l'enregistrement (alias pour DateDebut).
+    /// Utilisé pour la compatibilité avec différentes parties du code.
+    /// </summary>
+    public DateTime DateCreation
+    {
+        get => DateDebut;
+        set => DateDebut = value;
+    }
+
+    /// <summary>
+    /// Alias pour TailleOctets (autre variante de compatibilité).
+    /// </summary>
+    public long TailleFichier
+    {
+        get => TailleOctets;
+        set => TailleOctets = value;
+    }
+
+
+    /// <summary>
     /// Taille du fichier en octets.
     /// </summary>
     public long TailleOctets { get; set; }
