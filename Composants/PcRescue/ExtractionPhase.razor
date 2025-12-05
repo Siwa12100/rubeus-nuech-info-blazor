@@ -148,6 +148,10 @@
 </div>
 
 @code {
+    // Paramètre callback pour notifier le parent d'un changement de phase
+    [Parameter]
+    public EventCallback OnPhaseChanged { get; set; }
+
     // Composant actuellement en QTE
     private PcComponent? _currentQteComponent = null;
 
@@ -317,8 +321,10 @@
     /// <summary>
     /// Passe à la phase Shop
     /// </summary>
-    private void GoToShop()
+    private async Task GoToShop()
     {
         Game.State.Phase = GamePhase.Shop;
+        // Notifie le composant parent d'invoquer StateHasChanged()
+        await OnPhaseChanged.InvokeAsync();
     }
 }

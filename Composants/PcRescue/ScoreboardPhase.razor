@@ -2,47 +2,66 @@
 @using NuitInfo.Rubeus.PcRescue.Services
 @inject PcRescueGameService Game
 
-<div class="phase-container">
-    <div class="phase-header">
-        <h1>🏆 Mission Terminée !</h1>
-        <p class="phase-description">
-            Félicitations ! Vous avez terminé PC Rescue : Mission NIRD.<br/>
-            Voici vos résultats :
-        </p>
+<div class="scoreboard-phase">
+    <!-- Animation du PC qui s'allume -->
+    <div class="pc-boot-animation @(_animationComplete ? "complete" : "")">
+        <div class="power-indicator @(_powerOn ? "on" : "")"></div>
+        <div class="boot-text">@GetBootMessage()</div>
     </div>
 
-    <div class="phase-content">
-        <!-- Affichage des scores finaux -->
-        <div class="scoreboard">
-            <!-- Score écologique -->
-            <div class="score-card eco-score">
-                <div class="score-icon">🌱</div>
-                <h3>Score Écologique</h3>
-                <div class="score-value">@Game.State.EcoScore</div>
-                <p class="score-label">@GetEcoRating()</p>
+    <div class="scoreboard-content">
+        <h1 class="title">🏆 Mission NIRD Terminée !</h1>
+
+        <!-- Jauges de scores -->
+        <div class="gauges-container">
+            <!-- Jauge Performance -->
+            <div class="gauge-card">
+                <div class="gauge-header">
+                    <span class="gauge-icon">⚡</span>
+                    <span class="gauge-title">Performance</span>
+                </div>
+                <div class="gauge-bar">
+                    <div class="gauge-fill perf-fill" style="width: @(GetGaugeWidth(Game.State.PerfScore, 100))%">
+                        <span class="gauge-value">@Game.State.PerfScore</span>
+                    </div>
+                </div>
+                <p class="gauge-label">@GetPerfRating()</p>
             </div>
 
-            <!-- Score de performance -->
-            <div class="score-card perf-score">
-                <div class="score-icon">⚡</div>
-                <h3>Score Performance</h3>
-                <div class="score-value">@Game.State.PerfScore</div>
-                <p class="score-label">@GetPerfRating()</p>
-            </div>
-
-            <!-- Budget restant -->
-            <div class="score-card budget-score">
-                <div class="score-icon">💰</div>
-                <h3>Budget Restant</h3>
-                <div class="score-value">@Game.State.Budget €</div>
-                <p class="score-label">@GetBudgetRating()</p>
+            <!-- Jauge Écologie -->
+            <div class="gauge-card">
+                <div class="gauge-header">
+                    <span class="gauge-icon">🌱</span>
+                    <span class="gauge-title">Écologie</span>
+                </div>
+                <div class="gauge-bar">
+                    <div class="gauge-fill eco-fill" style="width: @(GetGaugeWidth(Game.State.EcoScore, 100))%">
+                        <span class="gauge-value">@Game.State.EcoScore</span>
+                    </div>
+                </div>
+                <p class="gauge-label">@GetEcoRating()</p>
             </div>
         </div>
 
-        <!-- Score total et appréciation -->
-        <div class="total-score">
-            <h2>Score Total : @CalculateTotalScore()</h2>
-            <p class="rating">@GetOverallRating()</p>
+        <!-- Verdict NIRD -->
+        <div class="verdict-card @GetVerdictClass()">
+            <div class="verdict-icon">@GetVerdictIcon()</div>
+            <h2 class="verdict-title">@GetVerdictTitle()</h2>
+            <p class="verdict-message">@GetVerdictMessage()</p>
+        </div>
+
+        <!-- Stats additionnelles -->
+        <div class="additional-stats">
+            <div class="stat-item">
+                <span class="stat-icon">💰</span>
+                <span class="stat-label">Budget Restant</span>
+                <span class="stat-value">@Game.State.Budget €</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">🎯</span>
+                <span class="stat-label">Score Total</span>
+                <span class="stat-value">@CalculateTotalScore()</span>
+            </div>
         </div>
 
         <!-- Message de sensibilisation -->
@@ -56,139 +75,239 @@
         </div>
 
         <!-- Bouton pour rejouer -->
-        <div class="action-zone">
+        <!-- <div class="action-zone">
             <button class="btn-primary" @onclick="RestartGame">
                 🔄 Rejouer
             </button>
-        </div>
+        </div> -->
     </div>
 </div>
 
 <style>
-    .phase-container {
+    .scoreboard-phase {
+        padding: 20px;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .pc-boot-animation {
+        text-align: center;
+        margin-bottom: 40px;
+        opacity: 0;
+        animation: fadeIn 0.5s ease forwards;
+    }
+
+    .power-indicator {
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background: #ccc;
+        border: 3px solid #666;
+        transition: all 0.5s ease;
+    }
+
+    .power-indicator.on {
+        background: #28a745;
+        box-shadow: 0 0 20px #28a745;
+        animation: pulse 1s infinite;
+    }
+
+    .boot-text {
+        color: white;
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+
+    .scoreboard-content {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .title {
+        color: #667eea;
+        font-size: 2.5em;
+        margin-bottom: 40px;
         text-align: center;
     }
 
-    .phase-header h1 {
-        color: #667eea;
-        margin-bottom: 15px;
-        font-size: 2.5em;
-    }
-
-    .phase-description {
-        color: #666;
-        font-size: 1.1em;
-        line-height: 1.6;
-        max-width: 600px;
-        margin: 0 auto 30px;
-    }
-
-    .phase-content {
-        margin-top: 40px;
-    }
-
-    .scoreboard {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        flex-wrap: wrap;
+    .gauges-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
         margin-bottom: 40px;
     }
 
-    .score-card {
-        background: white;
+    .gauge-card {
+        background: #f8f9fa;
+        padding: 25px;
         border-radius: 12px;
-        padding: 30px 40px;
-        min-width: 200px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s;
+        border-left: 4px solid #667eea;
     }
 
-    .score-card:hover {
-        transform: translateY(-5px);
+    .gauge-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
     }
 
-    .eco-score {
-        border: 3px solid #00b894;
+    .gauge-icon {
+        font-size: 1.8em;
     }
 
-    .perf-score {
-        border: 3px solid #fdcb6e;
-    }
-
-    .budget-score {
-        border: 3px solid #6c5ce7;
-    }
-
-    .score-icon {
-        font-size: 50px;
-        margin-bottom: 10px;
-    }
-
-    .score-card h3 {
-        margin: 10px 0;
-        color: #2d3436;
+    .gauge-title {
         font-size: 1.2em;
+        font-weight: bold;
+        color: #333;
     }
 
-    .score-value {
-        font-size: 2.5em;
-        font-weight: bold;
-        color: #667eea;
-        margin: 15px 0;
+    .gauge-bar {
+        background: #e9ecef;
+        border-radius: 10px;
+        height: 30px;
+        overflow: hidden;
+        margin-bottom: 10px;
+        position: relative;
     }
 
-    .score-label {
-        color: #636e72;
+    .gauge-fill {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
         font-weight: bold;
+        font-size: 0.9em;
+        transition: width 2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .perf-fill {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .eco-fill {
+        background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+    }
+
+    .gauge-label {
+        text-align: center;
+        color: #666;
+        font-size: 0.9em;
         margin: 0;
     }
 
-    .total-score {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
+    .verdict-card {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         border-radius: 12px;
+        padding: 40px;
+        text-align: center;
         margin-bottom: 30px;
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
+        border: 3px solid #667eea;
     }
 
-    .total-score h2 {
-        margin: 0 0 10px 0;
+    .verdict-card.master {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        border-color: #ffa500;
+    }
+
+    .verdict-card.empire {
+        background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%);
+        border-color: #c82333;
+    }
+
+    .verdict-card.failure {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        border-color: #343a40;
+    }
+
+    .verdict-icon {
+        font-size: 4em;
+        margin-bottom: 20px;
+    }
+
+    .verdict-title {
+        font-size: 1.8em;
+        color: #333;
+        margin: 0 0 15px 0;
+    }
+
+    .verdict-card.master .verdict-title,
+    .verdict-card.empire .verdict-title {
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .verdict-card.failure .verdict-title {
+        color: white;
+    }
+
+    .verdict-message {
+        font-size: 1.1em;
+        color: #666;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .verdict-card.master .verdict-message,
+    .verdict-card.empire .verdict-message,
+    .verdict-card.failure .verdict-message {
+        color: white;
+    }
+
+    .additional-stats {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin-bottom: 30px;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .stat-icon {
         font-size: 2em;
     }
 
-    .rating {
-        margin: 0;
-        font-size: 1.3em;
+    .stat-label {
+        color: #666;
+        font-size: 0.95em;
+    }
+
+    .stat-value {
+        font-size: 1.5em;
         font-weight: bold;
+        color: #667eea;
     }
 
     .eco-message {
-        background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
-        border-radius: 12px;
-        padding: 25px;
+        background: #e8f5e9;
+        border-left: 4px solid #28a745;
+        padding: 20px;
+        border-radius: 8px;
         margin-bottom: 30px;
-        max-width: 700px;
-        margin-left: auto;
-        margin-right: auto;
     }
 
     .eco-message h3 {
-        margin: 0 0 15px 0;
-        color: #2d3436;
+        margin: 0 0 10px 0;
+        color: #28a745;
     }
 
     .eco-message p {
         margin: 0;
-        color: #2d3436;
+        color: #333;
         line-height: 1.6;
     }
 
     .action-zone {
-        margin-top: 30px;
+        text-align: center;
     }
 
     .btn-primary {
@@ -196,7 +315,7 @@
         color: white;
         border: none;
         padding: 15px 40px;
-        font-size: 1.2em;
+        font-size: 1.1em;
         border-radius: 8px;
         cursor: pointer;
         font-weight: bold;
@@ -215,6 +334,19 @@
 </style>
 
 @code {
+    private bool _powerOn = false;
+    private bool _animationComplete = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Déclencher l'animation du PC au chargement
+        await Task.Delay(500);
+        _powerOn = true;
+        await Task.Delay(1500);
+        _animationComplete = true;
+        StateHasChanged();
+    }
+
     /// <summary>
     /// Redémarrer le jeu
     /// </summary>
@@ -232,8 +364,83 @@
     /// </summary>
     private int CalculateTotalScore()
     {
-        // Score total = somme pondérée des différents scores
         return (Game.State.EcoScore * 2) + Game.State.PerfScore + (Game.State.Budget / 2);
+    }
+
+    /// <summary>
+    /// Obtenir le message de boot
+    /// </summary>
+    private string GetBootMessage()
+    {
+        if (!_powerOn)
+            return "Appuyez sur le bouton...";
+        
+        if (!_animationComplete)
+            return "Démarrage du PC...";
+        
+        return "PC Démarré ✓";
+    }
+
+    /// <summary>
+    /// Calculer la largeur du gauge
+    /// </summary>
+    private string GetGaugeWidth(int score, int max = 100)
+    {
+        int percentage = Math.Min((score * 100) / max, 100);
+        return $"{percentage}%";
+    }
+
+    /// <summary>
+    /// Obtenir la classe CSS du verdict
+    /// </summary>
+    private string GetVerdictClass()
+    {
+        if (Game.State.EcoScore > 80 && Game.State.PerfScore > 50)
+            return "master";
+        
+        if (Game.State.PerfScore > 90 && Game.State.EcoScore < 20)
+            return "empire";
+        
+        return "failure";
+    }
+
+    /// <summary>
+    /// Obtenir le titre du verdict
+    /// </summary>
+    private string GetVerdictTitle()
+    {
+        return GetVerdictClass() switch
+        {
+            "master" => "Maître du Village Numérique 👑",
+            "empire" => "Soldat de l'Empire ⚔️",
+            _ => "Le PC a explosé 💀"
+        };
+    }
+
+    /// <summary>
+    /// Obtenir l'icône du verdict
+    /// </summary>
+    private string GetVerdictIcon()
+    {
+        return GetVerdictClass() switch
+        {
+            "master" => "👑",
+            "empire" => "⚔️",
+            _ => "💀"
+        };
+    }
+
+    /// <summary>
+    /// Obtenir le message du verdict
+    /// </summary>
+    private string GetVerdictMessage()
+    {
+        return GetVerdictClass() switch
+        {
+            "master" => "Félicitations ! Vous avez crée un PC écologique et performant. Le Village Numérique est sauvé !",
+            "empire" => "Impressionnant ! Vous avez construit une machine ultra-performante, mais au détriment de l'écologie...",
+            _ => "Le PC s'est déclaré forfait... Les composants n'étaient pas compatibles ou trop endommagés."
+        };
     }
 
     /// <summary>

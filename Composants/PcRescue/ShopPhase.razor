@@ -15,33 +15,143 @@
         <!-- Affichage du budget disponible -->
         <div class="budget-display">
             <h3>💰 Budget disponible : @Game.State.Budget €</h3>
+            @if (Game.State.Budget <= 0)
+            {
+                <p class="budget-warning">Budget épuisé!</p>
+            }
         </div>
 
-        <!-- Placeholder pour le catalogue de composants -->
+        <!-- Filtres par type de composant -->
+        <div class="shop-filters">
+            <button class="filter-btn @(selectedType == null ? "active" : "")" @onclick="() => SelectType(null)">
+                📦 Tous
+            </button>
+            <button class="filter-btn @(selectedType == ComponentType.Cpu ? "active" : "")" @onclick="() => SelectType(ComponentType.Cpu)">
+                ⚙️ Processeurs
+            </button>
+            <button class="filter-btn @(selectedType == ComponentType.Gpu ? "active" : "")" @onclick="() => SelectType(ComponentType.Gpu)">
+                🎮 Cartes graphiques
+            </button>
+            <button class="filter-btn @(selectedType == ComponentType.Ram ? "active" : "")" @onclick="() => SelectType(ComponentType.Ram)">
+                💾 Mémoire
+            </button>
+            <button class="filter-btn @(selectedType == ComponentType.PowerSupply ? "active" : "")" @onclick="() => SelectType(ComponentType.PowerSupply)">
+                ⚡ Alimentations
+            </button>
+            <button class="filter-btn @(selectedType == ComponentType.Storage ? "active" : "")" @onclick="() => SelectType(ComponentType.Storage)">
+                💿 Stockage
+            </button>
+            <button class="filter-btn @(selectedType == ComponentType.Os ? "active" : "")" @onclick="() => SelectType(ComponentType.Os)">
+                🖥️ Systèmes
+            </button>
+        </div>
+
+        <!-- Catalogue de composants -->
         <div class="shop-catalog">
-            <div class="placeholder-box">
-                <h3>🛒 Catalogue de composants</h3>
-                <p>Interface de boutique à venir</p>
-                <div class="shop-preview">
-                    <div class="component-card">📱 GPU</div>
-                    <div class="component-card">💾 RAM</div>
-                    <div class="component-card">💿 Storage</div>
+            @if (filteredItems.Count == 0)
+            {
+                <div class="no-items">
+                    <p>Aucun composant disponible avec ce filtre</p>
+                </div>
+            }
+            else
+            {
+                <div class="components-grid">
+                    @foreach (var item in filteredItems)
+                    {
+                        <div class="component-card">
+                            <div class="card-header">
+                                <h3>@item.Name</h3>
+                                <span class="quality-badge @GetQualityClass(item.Quality)">
+                                    @GetQualityLabel(item.Quality)
+                                </span>
+                            </div>
+                            
+                            <div class="card-body">
+                                <p class="description">@item.Description</p>
+                                
+                                <div class="stats">
+                                    <div class="stat">
+                                        <span class="label">⚡ Performance:</span>
+                                        <span class="value">+@item.PerformanceBoost</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="label">🌱 Écologie:</span>
+                                        <span class="value @(item.EcoScore >= 0 ? "eco-positive" : "eco-negative")">
+                                            @(item.EcoScore >= 0 ? "+" : "")@item.EcoScore
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer">
+                                <span class="cost">@item.Cost €</span>
+                                <button 
+                                    class="btn-buy" 
+                                    @onclick="() => BuyItem(item)"
+                                    disabled="@(item.Cost > Game.State.Budget)">
+                                    @(item.Cost > Game.State.Budget ? "Budget insuffisant" : "Acheter")
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Résumé des achats -->
+        @if (Game.State.Components.Any(c => c.State == ComponentState.BoughtNew))
+        {
+            <div class="purchase-summary">
+                <h3>📋 Composants achetés (@purchasedCount)</h3>
+                <div class="purchased-items">
+                    @foreach (var component in Game.State.Components.Where(c => c.State == ComponentState.BoughtNew))
+                    {
+                        <div class="purchased-item">
+                            <span>@component.Id</span>
+                            <span class="perf">⚡@component.BasePerf</span>
+                            <span class="eco">🌱@component.BaseEco</span>
+                        </div>
+                    }
                 </div>
             </div>
-        </div>
+        }
+
+        <!-- Message de succès -->
+        @if (!string.IsNullOrEmpty(purchaseMessage))
+        {
+            <div class="purchase-message @purchaseMessageClass">
+                @purchaseMessage
+            </div>
+        }
 
         <!-- Informations sur les choix -->
         <div class="shop-info">
             <p class="info-text">
-                Choisissez judicieusement entre performance et écologie !
+                💡 Conseil : Équilibrez performance et écologie pour maximiser votre score !
+            </p>
+            <p class="info-text">
+                🎯 Les composants neufs donnent plus de performance mais moins de points écologiques.
+            </p>
+            <p class="info-text">
+                ♻️ Les composants d'occasion et récupérés sont meilleurs pour l'environnement !
             </p>
         </div>
 
-        <!-- Bouton temporaire pour passer à la phase suivante -->
+        <!-- Bouton pour passer à la phase suivante -->
         <div class="action-zone">
-            <button class="btn-primary" @onclick="GoToMontage">
-                Passer au montage →
-            </button>
+            @if (purchasedCount > 0)
+            {
+                <button class="btn-primary" @onclick="GoToMontage">
+                    Passer au montage → (@purchasedCount composant@(purchasedCount > 1 ? "s" : ""))
+                </button>
+            }
+            else
+            {
+                <button class="btn-primary" disabled title="Achetez au moins un composant">
+                    Passer au montage (au moins 1 composant requis)
+                </button>
+            }
         </div>
     </div>
 </div>
@@ -76,65 +186,322 @@
         max-width: 400px;
         margin-left: auto;
         margin-right: auto;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .budget-display h3 {
-        margin: 0;
+        margin: 0 0 5px 0;
         color: #2d3436;
+        font-size: 1.3em;
     }
 
+    .budget-warning {
+        color: #d63031;
+        font-weight: bold;
+        margin: 5px 0 0 0;
+    }
+
+    /* Filtres */
+    .shop-filters {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: 30px 0;
+        padding: 0 20px;
+    }
+
+    .filter-btn {
+        background: #f5f5f5;
+        border: 2px solid #ddd;
+        padding: 10px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .filter-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .filter-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+    }
+
+    /* Catalogue */
     .shop-catalog {
-        margin-bottom: 30px;
+        margin: 30px 0;
+        min-height: 300px;
     }
 
-    .placeholder-box {
+    .no-items {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         border: 2px dashed #667eea;
         border-radius: 12px;
-        padding: 40px 30px;
+        padding: 60px 30px;
         max-width: 700px;
         margin: 0 auto;
     }
 
-    .placeholder-box h3 {
-        margin: 0 0 20px 0;
-        color: #667eea;
-    }
-
-    .placeholder-box p {
-        margin: 5px 0 20px;
+    .no-items p {
         color: #666;
+        font-size: 1.1em;
+        margin: 0;
     }
 
-    .shop-preview {
-        display: flex;
+    /* Grille de composants */
+    .components-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 20px;
-        justify-content: center;
-        flex-wrap: wrap;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
     }
 
+    /* Carte de composant */
     .component-card {
         background: white;
-        border: 2px solid #667eea;
-        border-radius: 8px;
-        padding: 30px 40px;
-        font-size: 1.2em;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .component-card:hover {
+        border-color: #667eea;
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 10px;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        color: #667eea;
+        font-size: 1.1em;
+        text-align: left;
+    }
+
+    .quality-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    .quality-badge.new {
+        background: #00b894;
+        color: white;
+    }
+
+    .quality-badge.used {
+        background: #fdcb6e;
+        color: #2d3436;
+    }
+
+    .quality-badge.refurb {
+        background: #6c5ce7;
+        color: white;
+    }
+
+    .card-body {
+        padding: 15px;
+        flex-grow: 1;
+        text-align: left;
+    }
+
+    .description {
+        color: #666;
+        font-size: 0.9em;
+        margin: 0 0 15px 0;
+        line-height: 1.4;
+    }
+
+    .stats {
+        display: flex;
+        gap: 15px;
+        flex-direction: column;
+    }
+
+    .stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px;
+        background: #f5f5f5;
+        border-radius: 6px;
+    }
+
+    .stat .label {
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    .stat .value {
         font-weight: bold;
         color: #667eea;
-    }
-
-    .shop-info {
-        margin-top: 20px;
-    }
-
-    .info-text {
-        font-weight: bold;
-        color: #764ba2;
         font-size: 1.1em;
     }
 
+    .eco-positive {
+        color: #00b894 !important;
+    }
+
+    .eco-negative {
+        color: #d63031 !important;
+    }
+
+    .card-footer {
+        padding: 15px;
+        background: #f9f9f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .cost {
+        font-size: 1.3em;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .btn-buy {
+        flex: 1;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        font-size: 0.9em;
+    }
+
+    .btn-buy:hover:not(:disabled) {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-buy:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    /* Résumé des achats */
+    .purchase-summary {
+        background: linear-gradient(135deg, #a29bfe 0%, #74b9ff 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px auto;
+        max-width: 600px;
+        color: white;
+    }
+
+    .purchase-summary h3 {
+        margin: 0 0 15px 0;
+    }
+
+    .purchased-items {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .purchased-item {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.9em;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .purchased-item .perf {
+        background: rgba(255, 255, 255, 0.3);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .purchased-item .eco {
+        background: rgba(255, 255, 255, 0.3);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    /* Messages */
+    .purchase-message {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 15px;
+        border-radius: 8px;
+        font-weight: bold;
+        animation: slideIn 0.3s ease;
+    }
+
+    .purchase-message.success {
+        background: #d4edda;
+        color: #155724;
+        border: 2px solid #28a745;
+    }
+
+    .purchase-message.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 2px solid #f5c6cb;
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .shop-info {
+        margin-top: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #fff5e6 0%, #ffe8cc 100%);
+        border-radius: 12px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .info-text {
+        color: #764ba2;
+        font-weight: 500;
+        margin: 8px 0;
+        font-size: 0.95em;
+    }
+
     .action-zone {
-        margin-top: 40px;
+        margin-top: 30px;
+        margin-bottom: 20px;
     }
 
     .btn-primary {
@@ -150,26 +517,128 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
 
-    .btn-primary:active {
+    .btn-primary:active:not(:disabled) {
         transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        opacity: 0.6;
     }
 </style>
 
 @code {
+    // Paramètre callback pour notifier le parent d'un changement de phase
+    [Parameter]
+    public EventCallback OnPhaseChanged { get; set; }
+
+    private List<ShopItem> allItems = new();
+    private List<ShopItem> filteredItems = new();
+    private ComponentType? selectedType = null;
+    private string purchaseMessage = string.Empty;
+    private string purchaseMessageClass = string.Empty;
+    private int purchasedCount = 0;
+
+    /// <summary>
+    /// Initialisation de la composante
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        allItems = ShopCatalog.GetAllItems();
+        filteredItems = allItems;
+        UpdatePurchasedCount();
+    }
+
+    /// <summary>
+    /// Filtre les articles par type
+    /// </summary>
+    private void SelectType(ComponentType? type)
+    {
+        selectedType = type;
+        
+        if (selectedType == null)
+        {
+            filteredItems = allItems;
+        }
+        else
+        {
+            filteredItems = ShopCatalog.GetItemsByType(selectedType.Value);
+        }
+    }
+
+    /// <summary>
+    /// Achète un article
+    /// </summary>
+    private async Task BuyItem(ShopItem item)
+    {
+        if (Game.BuyComponent(item))
+        {
+            purchaseMessage = $"✅ {item.Name} acheté avec succès !";
+            purchaseMessageClass = "success";
+            UpdatePurchasedCount();
+        }
+        else
+        {
+            purchaseMessage = $"❌ Budget insuffisant pour {item.Name}";
+            purchaseMessageClass = "error";
+        }
+
+        // Effacer le message après 3 secondes
+        await Task.Delay(3000);
+        purchaseMessage = string.Empty;
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Met à jour le compteur de composants achetés
+    /// </summary>
+    private void UpdatePurchasedCount()
+    {
+        purchasedCount = Game.State.Components.Count(c => c.State == ComponentState.BoughtNew);
+    }
+
+    /// <summary>
+    /// Retourne la classe CSS correspondant à la qualité
+    /// </summary>
+    private string GetQualityClass(ComponentQuality quality)
+    {
+        return quality switch
+        {
+            ComponentQuality.New => "new",
+            ComponentQuality.Used => "used",
+            ComponentQuality.Refurb => "refurb",
+            _ => "new"
+        };
+    }
+
+    /// <summary>
+    /// Retourne le label correspondant à la qualité
+    /// </summary>
+    private string GetQualityLabel(ComponentQuality quality)
+    {
+        return quality switch
+        {
+            ComponentQuality.New => "🆕 Neuf",
+            ComponentQuality.Used => "♻️ Occasion",
+            ComponentQuality.Refurb => "🔧 Récup",
+            _ => "Inconnu"
+        };
+    }
+
     /// <summary>
     /// Passer à la phase Montage
-    /// (temporaire - la vraie logique viendra avec l'interface de shop)
     /// </summary>
     private void GoToMontage()
     {
-        // Pour l'instant, on passe directement au montage
-        // Dans l'étape 3, cette transition ne se fera qu'après
-        // avoir acheté au moins un composant
-        Game.State.Phase = GamePhase.Montage;
+        if (purchasedCount > 0)
+        {
+            Game.State.Phase = GamePhase.Montage;
+        }
     }
 }

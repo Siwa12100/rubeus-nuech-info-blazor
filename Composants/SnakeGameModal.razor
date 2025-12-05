@@ -141,7 +141,7 @@
     public EventCallback OnClose { get; set; }
 
     private bool isOpen;
-    private GameState? gameState;
+    private NuitInfo.Rubeus.Modeles.SnakeGame.GameState? gameState;
     private System.Timers.Timer? gameUpdateTimer;
     private const int UpdateIntervalMs = 16; // ~60 FPS
     private DotNetObjectReference<SnakeGameModal>? objRef;

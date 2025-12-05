@@ -21,7 +21,8 @@ public enum ComponentSlot
     Gpu,
     Ram,
     Storage,
-    Psu
+    PowerSupply,
+    Os  // Système d'exploitation (virtuel, pas d'emplacement physique)
 }
 
 /// <summary>
@@ -57,6 +58,80 @@ public enum QteResult
 }
 
 /// <summary>
+/// Les types de composants disponibles dans le shop
+/// </summary>
+public enum ComponentType
+{
+    Cpu,         // Processeurs
+    Gpu,         // Cartes graphiques
+    Ram,         // Mémoire vive
+    PowerSupply, // Alimentations
+    Storage,     // Stockage
+    Os           // Systèmes d'exploitation
+}
+
+/// <summary>
+/// La condition commerciale du composant (nouveau, occasion, récup)
+/// </summary>
+public enum ComponentQuality
+{
+    New,       // Neuf
+    Used,      // Occasion
+    Refurb     // Récupéré/Reconditionné
+}
+
+/// <summary>
+/// Représente un article du shop disponible à l'achat
+/// </summary>
+public class ShopItem
+{
+    /// <summary>
+    /// Identifiant unique de l'article
+    /// </summary>
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Nom affiché de l'article
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Type de composant
+    /// </summary>
+    public ComponentType Type { get; set; }
+
+    /// <summary>
+    /// Qualité/condition du composant
+    /// </summary>
+    public ComponentQuality Quality { get; set; }
+
+    /// <summary>
+    /// Coût en euros
+    /// </summary>
+    public int Cost { get; set; }
+
+    /// <summary>
+    /// Performance apportée (0-100)
+    /// </summary>
+    public int PerformanceBoost { get; set; }
+
+    /// <summary>
+    /// Score écologique (négatif=mauvais, positif=bon)
+    /// </summary>
+    public int EcoScore { get; set; }
+
+    /// <summary>
+    /// Description de l'article
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Chemin vers l'image du composant
+    /// </summary>
+    public string ImagePath { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// Représente un composant PC dans le jeu
 /// </summary>
 public class PcComponent
@@ -65,6 +140,11 @@ public class PcComponent
     /// Identifiant unique du composant
     /// </summary>
     public string Id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Nom du composant
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Emplacement du composant (CPU, GPU, RAM, Storage)
@@ -105,7 +185,7 @@ public class PcComponent
 /// <summary>
 /// État global du jeu PC Rescue
 /// </summary>
-public class GameState
+public class PcRescueGameState
 {
     /// <summary>
     /// Budget disponible pour acheter de nouveaux composants

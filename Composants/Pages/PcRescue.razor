@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @using NuitInfo.Rubeus.PcRescue.Models
 @using NuitInfo.Rubeus.PcRescue.Services
+@using Microsoft.AspNetCore.Components.Web
 @using NuitInfo.Rubeus.Composants.PcRescue
 @inject PcRescueGameService Game
 
@@ -23,23 +24,23 @@
         @switch (Game.State.Phase)
         {
             case GamePhase.Opening:
-                <OpeningPhase OnFinished="GoToExtraction" @rendermode="InteractiveServer" />
+                <OpeningPhase OnFinished="GoToExtraction" />
                 break;
 
             case GamePhase.Extraction:
-                <ExtractionPhase @rendermode="InteractiveServer" />
+                <ExtractionPhase OnPhaseChanged="HandlePhaseChanged" />
                 break;
 
             case GamePhase.Shop:
-                <ShopPhase @rendermode="InteractiveServer" />
+                <ShopPhase OnPhaseChanged="HandlePhaseChanged" />
                 break;
 
             case GamePhase.Montage:
-                <MontagePhase @rendermode="InteractiveServer" />
+                <MontagePhase OnPhaseChanged="HandlePhaseChanged" />
                 break;
 
             case GamePhase.Scoreboard:
-                <ScoreboardPhase @rendermode="InteractiveServer" />
+                <ScoreboardPhase />
                 break;
         }
     </div>
@@ -106,5 +107,23 @@
     private void GoToExtraction()
     {
         Game.State.Phase = GamePhase.Extraction;
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Passer directement au Shop (pour tester)
+    /// </summary>
+    private void GoToShopDebug()
+    {
+        Game.State.Phase = GamePhase.Shop;
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Handler appelé quand un composant enfant change de phase
+    /// </summary>
+    private void HandlePhaseChanged()
+    {
+        StateHasChanged();
     }
 }

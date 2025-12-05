@@ -10,11 +10,11 @@ public class PcRescueGameService
     /// <summary>
     /// État actuel du jeu
     /// </summary>
-    public GameState State { get; private set; }
+    public PcRescueGameState State { get; private set; }
 
     public PcRescueGameService()
     {
-        State = new GameState();
+        State = new PcRescueGameState();
     }
 
     /// <summary>
@@ -23,7 +23,7 @@ public class PcRescueGameService
     public void Initialize()
     {
         // Réinitialisation de l'état du jeu
-        State = new GameState
+        State = new PcRescueGameState
         {
             Budget = 100,
             EcoScore = 0,
@@ -36,6 +36,7 @@ public class PcRescueGameService
         State.Components.Add(new PcComponent
         {
             Id = "gpu_old",
+            Name = "Carte Graphique (Ancienne)",
             Slot = ComponentSlot.Gpu,
             State = ComponentState.InstalledOld,
             Condition = ComponentCondition.Intact,
@@ -43,12 +44,14 @@ public class PcRescueGameService
             BaseEco = 10,
             BaseValue = 40,
             ImagePath = "/pc-rescue-game/gtx950.png"
+            ImagePath = "/pc-rescue-game/gtx950.png"
         });
 
         // Création de la RAM de départ
         State.Components.Add(new PcComponent
         {
             Id = "ram_old",
+            Name = "Mémoire RAM (Ancienne)",
             Slot = ComponentSlot.Ram,
             State = ComponentState.InstalledOld,
             Condition = ComponentCondition.Intact,
@@ -56,18 +59,21 @@ public class PcRescueGameService
             BaseEco = 15,
             BaseValue = 30,
             ImagePath = "/pc-rescue-game/DDR38Go.png"
+            ImagePath = "/pc-rescue-game/DDR38Go.png"
         });
 
         // Création du Storage de départ
         State.Components.Add(new PcComponent
         {
             Id = "storage_old",
+            Name = "Stockage (Ancien)",
             Slot = ComponentSlot.Storage,
             State = ComponentState.InstalledOld,
             Condition = ComponentCondition.Intact,
             BasePerf = 25,
             BaseEco = 20,
             BaseValue = 35,
+            ImagePath = "/pc-rescue-game/hdd256.png"
             ImagePath = "/pc-rescue-game/hdd256.png"
         });
 
@@ -216,10 +222,64 @@ public class PcRescueGameService
     {
         return result switch
         {
-            QteResult.Perfect => 1.0,   // 100% de performance
-            QteResult.Medium => 0.75,   // 75% de performance
-            QteResult.Fail => 0.5,      // 50% de performance
+            QteResult.Perfect => 1.0,   // 100% de performance - Installation parfaite !
+            QteResult.Medium => 0.8,    // 80% de performance - Un peu de travers...
+            QteResult.Fail => 0.5,      // 50% de performance - Les pins sont tordus !
             _ => 0.5
         };
     }
+
+    /// <summary>
+    /// Achète un composant du shop et l'ajoute à l'état du jeu
+    /// </summary>
+    /// <param name="shopItem">L'article du shop à acheter</param>
+    /// <returns>true si l'achat est réussi, false sinon (budget insuffisant)</returns>
+    public bool BuyComponent(ShopItem shopItem)
+    {
+        // Vérification du budget
+        if (shopItem.Cost > State.Budget)
+            return false;
+
+        // Déduction du budget
+        State.Budget -= shopItem.Cost;
+
+        // Création du nouveau composant à partir de l'article du shop
+        var newComponent = new PcComponent
+        {
+            Id = shopItem.Id + "_" + Guid.NewGuid().ToString().Substring(0, 8),
+            Slot = GetSlotFromComponentType(shopItem.Type),
+            State = ComponentState.BoughtNew,
+            Condition = ComponentCondition.Intact,
+            BasePerf = shopItem.PerformanceBoost,
+            BaseEco = shopItem.EcoScore,
+            BaseValue = shopItem.Cost,
+            ImagePath = shopItem.ImagePath
+        };
+
+        // Ajout du composant à la liste
+        State.Components.Add(newComponent);
+
+        // Application des scores écologiques immédiatement
+        State.EcoScore += shopItem.EcoScore;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Convertit un type de composant en emplacement de slot
+    /// </summary>
+    private ComponentSlot GetSlotFromComponentType(ComponentType type)
+    {
+        return type switch
+        {
+            ComponentType.Cpu => ComponentSlot.Cpu,
+            ComponentType.Gpu => ComponentSlot.Gpu,
+            ComponentType.Ram => ComponentSlot.Ram,
+            ComponentType.Storage => ComponentSlot.Storage,
+            ComponentType.PowerSupply => ComponentSlot.PowerSupply,
+            ComponentType.Os => ComponentSlot.Os,
+            _ => ComponentSlot.Cpu
+        };
+    }
 }
+

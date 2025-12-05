@@ -2,185 +2,660 @@
 @using NuitInfo.Rubeus.PcRescue.Services
 @inject PcRescueGameService Game
 
-<div class="phase-container">
-    <div class="phase-header">
-        <h1>Phase 4 - Montage du PC</h1>
-        <p class="phase-description">
-            Installez les nouveaux composants dans le PC<br/>
-            avec précaution pour maximiser les performances !
-        </p>
+<div class="montage-phase">
+    <!-- HUD -->
+    <div class="hud">
+        <div class="hud-item">
+            <span class="hud-label">💰 Budget:</span>
+            <span class="hud-value">@Game.State.Budget €</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">🌱 Éco-Score:</span>
+            <span class="hud-value">@Game.State.EcoScore</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">⚡ Performance:</span>
+            <span class="hud-value">@Game.State.PerfScore</span>
+        </div>
     </div>
 
-    <div class="phase-content">
-        <!-- Placeholder pour la zone de montage -->
-        <div class="assembly-zone">
-            <div class="placeholder-box">
-                <h3>🔧 Zone de montage</h3>
-                <p>Interface de mini-jeu d'installation à venir</p>
-                <div class="assembly-preview">
-                    <div class="motherboard-slot">
-                        <span>🖥️</span>
-                        <p>Carte mère</p>
-                    </div>
-                    <div class="component-slots">
-                        <div class="slot">📱 GPU</div>
-                        <div class="slot">💾 RAM</div>
-                        <div class="slot">💿 Storage</div>
-                    </div>
+    <h1 class="phase-title">Phase 4 - Montage & Installation</h1>
+
+    <!-- Zone principale de montage -->
+    <div class="main-content">
+        <!-- Zone du PC avec emplacements pour installer les composants -->
+        @if (!AllSlotsFilledAndOsInstalled())
+        {
+            <div class="pc-zone">
+                <div class="pc-interior">
+                    <img src="/pc-rescue-game/pc_vue1.png" alt="Intérieur du PC" class="pc-background"/>
+
+                    <!-- Slots d'installation (zones de drop) -->
+                    @foreach (var slot in GetAvailableSlots())
+                    {
+                        <div class="installation-slot @(IsDragOverSlot(slot) ? "drag-over" : "")"
+                             style="@GetSlotPosition(slot)"
+                             @ondragover="HandleDragOver"
+                             @ondragover:preventDefault="true"
+                             @ondragleave="HandleDragLeave"
+                             @ondrop="@(() => HandleInstallComponent(slot))"
+                             @ondrop:preventDefault="true">
+                            
+                            @if (IsSlotFilled(slot))
+                            {
+                                var installedComponent = GetComponentInSlot(slot);
+                                if (installedComponent != null)
+                                {
+                                    <div class="installed-component">
+                                        <img src="@installedComponent.ImagePath" alt="@installedComponent.Id" class="component-image"/>
+                                        <div class="component-label">@GetSlotName(slot)</div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="empty-slot">
+                                    <div class="slot-icon">📌</div>
+                                    <div class="slot-name">@GetSlotName(slot)</div>
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
+
+                <!-- Message d'instruction -->
+                @if (GetComponentsToInstall().Any())
+                {
+                    <p class="instruction-text">
+                        ⚡ Glissez les composants sur les emplacements pour les installer !
+                    </p>
+                }
             </div>
-        </div>
 
-        <!-- Informations sur l'installation -->
-        <div class="assembly-info">
-            <p class="info-text">
-                Attention : la qualité de l'installation affecte les performances finales !
-            </p>
-        </div>
+            <!-- Composants à installer -->
+            @if (GetComponentsToInstall().Any() || GetOsToInstall().Any())
+            {
+                <div class="components-to-install">
+                    <!-- Composants matériels -->
+                    @if (GetPhysicalComponentsToInstall().Any())
+                    {
+                        <h3 class="install-title">Composants matériels à installer:</h3>
+                        <div class="draggable-components">
+                            @foreach (var component in GetPhysicalComponentsToInstall())
+                            {
+                                <div class="draggable-component"
+                                     draggable="true"
+                                     @ondragstart="() => HandleDragStart(component)"
+                                     @ondragend="HandleDragEnd">
+                                    <img src="@component.ImagePath" alt="@component.Id"/>
+                                    <div class="component-info">
+                                        <span class="component-name">@component.Name</span>
+                                        <span class="component-perf">⚡ +@component.BasePerf</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
 
-        <!-- Bouton temporaire pour passer à la phase suivante -->
-        <div class="action-zone">
-            <button class="btn-primary" @onclick="GoToScoreboard">
-                Voir le résultat →
-            </button>
-        </div>
+                    <!-- Système d'exploitation -->
+                    @if (GetOsToInstall().Any())
+                    {
+                        <h3 class="install-title">Système d'exploitation:</h3>
+                        <div class="os-selection">
+                            @foreach (var osComponent in GetOsToInstall())
+                            {
+                                <div class="os-card" @onclick="() => HandleInstallOs(osComponent)">
+                                    <img src="@osComponent.ImagePath" alt="@osComponent.Id"/>
+                                    <div class="os-info">
+                                        <span class="os-name">@osComponent.Name</span>
+                                        <span class="os-description">Cliquez pour installer</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Tous les composants sont installés -->
+            <div class="completion-message">
+                <div class="success-icon">✅</div>
+                <h2>Montage terminé !</h2>
+                <p>Tous vos composants ont été installés avec succès.</p>
+                <button class="btn-continue" @onclick="GoToScoreboard">
+                    Voir les résultats →
+                </button>
+            </div>
+        }
     </div>
+
+    <!-- Overlay QTE -->
+    @if (_showQte && _currentQteComponent != null)
+    {
+        <QteOverlay OnFinished="HandleQteFinished"/>
+    }
 </div>
 
 <style>
-    .phase-container {
+    .montage-phase {
+        padding: 20px;
+    }
+
+    .phase-title {
         text-align: center;
-    }
-
-    .phase-header h1 {
-        color: #667eea;
-        margin-bottom: 15px;
-    }
-
-    .phase-description {
-        color: #666;
-        font-size: 1.1em;
-        line-height: 1.6;
-        max-width: 600px;
-        margin: 0 auto 30px;
-    }
-
-    .phase-content {
-        margin-top: 40px;
-    }
-
-    .assembly-zone {
+        color: #333;
         margin-bottom: 30px;
+        font-size: 2em;
     }
 
-    .placeholder-box {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        border: 2px dashed #667eea;
-        border-radius: 12px;
-        padding: 40px 30px;
-        max-width: 700px;
-        margin: 0 auto;
-    }
-
-    .placeholder-box h3 {
-        margin: 0 0 20px 0;
-        color: #667eea;
-    }
-
-    .placeholder-box p {
-        margin: 5px 0 20px;
-        color: #666;
-    }
-
-    .assembly-preview {
+    .hud {
         display: flex;
-        flex-direction: column;
-        gap: 20px;
-        align-items: center;
-    }
-
-    .motherboard-slot {
-        background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+        gap: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
         border-radius: 10px;
-        padding: 30px 60px;
-        color: white;
-    }
-
-    .motherboard-slot span {
-        font-size: 60px;
-        display: block;
-    }
-
-    .motherboard-slot p {
-        margin: 10px 0 0;
-        color: white;
-        font-weight: bold;
-    }
-
-    .component-slots {
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
+        margin-bottom: 30px;
         justify-content: center;
     }
 
-    .slot {
+    .hud-item {
+        font-size: 1.1em;
+        font-weight: bold;
+    }
+
+    .hud-label {
+        display: block;
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+
+    .hud-value {
+        display: block;
+        font-size: 1.3em;
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .pc-zone {
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .pc-interior {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        aspect-ratio: 4/3;
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid #ddd;
+    }
+
+    .pc-background {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .installation-slot {
+        position: absolute;
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.8);
+        border: 3px dashed #999;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: grab;
+        transition: all 0.3s ease;
+        flex-direction: column;
+    }
+
+    .installation-slot:hover {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.1);
+    }
+
+    .installation-slot.drag-over {
+        border-color: #28a745;
+        background: rgba(40, 167, 69, 0.2);
+        border-style: solid;
+        box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+    }
+
+    .empty-slot {
+        text-align: center;
+        color: #999;
+        font-size: 0.9em;
+    }
+
+    .slot-icon {
+        font-size: 2em;
+        margin-bottom: 5px;
+    }
+
+    .slot-name {
+        font-weight: bold;
+        font-size: 0.8em;
+    }
+
+    .installed-component {
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        background: rgba(40, 167, 69, 0.1);
+        border-radius: 6px;
+    }
+
+    .component-image {
+        max-width: 80px;
+        max-height: 60px;
+        object-fit: contain;
+    }
+
+    .component-label {
+        font-size: 0.75em;
+        font-weight: bold;
+        color: #28a745;
+    }
+
+    .instruction-text {
+        text-align: center;
+        color: #666;
+        font-size: 1.1em;
+        margin-top: 15px;
+    }
+
+    .components-to-install {
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .install-title {
+        margin: 0 0 15px 0;
+        color: #333;
+    }
+
+    .draggable-components {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+
+    .draggable-component {
+        background: white;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: grab;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .draggable-component:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .draggable-component:active {
+        cursor: grabbing;
+    }
+
+    .draggable-component img {
+        max-width: 80px;
+        max-height: 60px;
+        object-fit: contain;
+    }
+
+    .component-info {
+        text-align: center;
+        width: 100%;
+    }
+
+    .component-name {
+        display: block;
+        font-weight: bold;
+        color: #333;
+        font-size: 0.9em;
+    }
+
+    .component-perf {
+        display: block;
+        color: #667eea;
+        font-size: 0.85em;
+        font-weight: bold;
+    }
+
+    .os-selection {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .os-card {
         background: white;
         border: 2px solid #667eea;
         border-radius: 8px;
-        padding: 20px 30px;
-        font-size: 1.1em;
-        font-weight: bold;
-        color: #667eea;
-    }
-
-    .assembly-info {
-        margin-top: 20px;
-    }
-
-    .info-text {
-        font-weight: bold;
-        color: #764ba2;
-        font-size: 1.1em;
-    }
-
-    .action-zone {
-        margin-top: 40px;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 15px 40px;
-        font-size: 1.2em;
-        border-radius: 8px;
+        padding: 15px;
         cursor: pointer;
-        font-weight: bold;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
     }
 
-    .btn-primary:hover {
+    .os-card:hover {
+        border-color: #28a745;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
         transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        background: rgba(40, 167, 69, 0.05);
     }
 
-    .btn-primary:active {
-        transform: translateY(0);
+    .os-card img {
+        max-width: 80px;
+        max-height: 60px;
+        object-fit: contain;
+    }
+
+    .os-info {
+        width: 100%;
+    }
+
+    .os-name {
+        display: block;
+        font-weight: bold;
+        color: #333;
+        font-size: 0.9em;
+        margin-bottom: 5px;
+    }
+
+    .os-description {
+        display: block;
+        color: #999;
+        font-size: 0.75em;
+    }
+
+    .completion-message {
+        text-align: center;
+        padding: 60px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        color: white;
+    }
+
+    .success-icon {
+        font-size: 3em;
+        margin-bottom: 15px;
+    }
+
+    .completion-message h2 {
+        margin: 0 0 10px 0;
+        font-size: 1.8em;
+    }
+
+    .completion-message p {
+        margin: 0 0 20px 0;
+        opacity: 0.9;
+    }
+
+    .btn-continue {
+        background: white;
+        color: #667eea;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 6px;
+        font-size: 1.1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-continue:hover {
+        background: #f0f0f0;
+        transform: scale(1.05);
     }
 </style>
 
 @code {
+    // Paramètre callback pour notifier le parent d'un changement de phase
+    [Parameter]
+    public EventCallback OnPhaseChanged { get; set; }
+
+    // Composant actuellement en QTE
+    private PcComponent? _currentQteComponent = null;
+
+    // Affichage de l'overlay QTE
+    private bool _showQte = false;
+
+    // Composant en cours de drag
+    private PcComponent? _draggedComponent = null;
+
+    // Slot actuellement survolé
+    private ComponentSlot? _currentDragOverSlot = null;
+
     /// <summary>
-    /// Passer à la phase Scoreboard
-    /// (temporaire - la vraie logique viendra avec le mini-jeu d'installation)
+    /// Récupère les slots disponibles (CPU, GPU, RAM, Storage, PowerSupply)
     /// </summary>
-    private void GoToScoreboard()
+    private IEnumerable<ComponentSlot> GetAvailableSlots()
     {
-        // Pour l'instant, on passe directement au scoreboard
-        // Dans l'étape 3, cette transition ne se fera qu'après
-        // avoir installé tous les nouveaux composants
+        return new[] { ComponentSlot.Cpu, ComponentSlot.Gpu, ComponentSlot.Ram, ComponentSlot.Storage, ComponentSlot.PowerSupply };
+    }
+
+    /// <summary>
+    /// Récupère les composants à installer (état BoughtNew)
+    /// </summary>
+    private IEnumerable<PcComponent> GetComponentsToInstall()
+    {
+        return Game.State.Components.Where(c => c.State == ComponentState.BoughtNew);
+    }
+
+    /// <summary>
+    /// Vérifie que tous les slots sont remplis ET que l'OS est installé
+    /// </summary>
+    private bool AllSlotsFilledAndOsInstalled()
+    {
+        // Vérifier que tous les slots physiques sont remplis
+        var allPhysicalSlotsFilled = GetAvailableSlots().All(slot => IsSlotFilled(slot));
+        
+        // Vérifier que l'OS est installé
+        var osInstalled = Game.State.Components.Any(c => c.Slot == ComponentSlot.Os && c.State == ComponentState.InstalledNew);
+        
+        return allPhysicalSlotsFilled && osInstalled;
+    }
+
+    /// <summary>
+    /// Récupère les composants matériels à installer (excluant l'OS)
+    /// </summary>
+    private IEnumerable<PcComponent> GetPhysicalComponentsToInstall()
+    {
+        return Game.State.Components.Where(c => c.State == ComponentState.BoughtNew && c.Slot != ComponentSlot.Os);
+    }
+
+    /// <summary>
+    /// Récupère les systèmes d'exploitation à installer
+    /// </summary>
+    private IEnumerable<PcComponent> GetOsToInstall()
+    {
+        return Game.State.Components.Where(c => c.State == ComponentState.BoughtNew && c.Slot == ComponentSlot.Os);
+    }
+
+    /// <summary>
+    /// Récupère les composants déjà installés (état InstalledNew)
+    /// </summary>
+    private IEnumerable<PcComponent> GetComponentsInstalled()
+    {
+        return Game.State.Components.Where(c => c.State == ComponentState.InstalledNew);
+    }
+
+    /// <summary>
+    /// Retourne la position CSS d'un slot
+    /// </summary>
+    private string GetSlotPosition(ComponentSlot slot)
+    {
+        return slot switch
+        {
+            ComponentSlot.Cpu => "top: 25%; left: 30%;",
+            ComponentSlot.Gpu => "top: 40%; left: 55%;",
+            ComponentSlot.Ram => "top: 20%; left: 60%;",
+            ComponentSlot.Storage => "top: 60%; left: 50%;",
+            ComponentSlot.PowerSupply => "top: 75%; left: 30%;",
+            _ => "top: 50%; left: 50%;"
+        };
+    }
+
+    /// <summary>
+    /// Retourne le nom d'un slot
+    /// </summary>
+    private string GetSlotName(ComponentSlot slot)
+    {
+        return slot switch
+        {
+            ComponentSlot.Cpu => "CPU",
+            ComponentSlot.Gpu => "GPU",
+            ComponentSlot.Ram => "RAM",
+            ComponentSlot.Storage => "Stockage",
+            ComponentSlot.PowerSupply => "Alim",
+            _ => "?"
+        };
+    }
+
+    /// <summary>
+    /// Vérifie si un slot est rempli
+    /// </summary>
+    private bool IsSlotFilled(ComponentSlot slot)
+    {
+        return Game.State.Components.Any(c => c.Slot == slot && c.State == ComponentState.InstalledNew);
+    }
+
+    /// <summary>
+    /// Récupère le composant installé dans un slot
+    /// </summary>
+    private PcComponent? GetComponentInSlot(ComponentSlot slot)
+    {
+        return Game.State.Components.FirstOrDefault(c => c.Slot == slot && c.State == ComponentState.InstalledNew);
+    }
+
+    /// <summary>
+    /// Gère le début du drag
+    /// </summary>
+    private void HandleDragStart(PcComponent component)
+    {
+        _draggedComponent = component;
+    }
+
+    /// <summary>
+    /// Gère la fin du drag
+    /// </summary>
+    private void HandleDragEnd()
+    {
+        _draggedComponent = null;
+        _currentDragOverSlot = null;
+    }
+
+    /// <summary>
+    /// Gère le survol d'un slot
+    /// </summary>
+    private void HandleDragOver()
+    {
+        // Nécessaire pour permettre le drop
+    }
+
+    /// <summary>
+    /// Gère le départ du survol d'un slot
+    /// </summary>
+    private void HandleDragLeave()
+    {
+        _currentDragOverSlot = null;
+    }
+
+    /// <summary>
+    /// Vérifie si un slot est actuellement survolé
+    /// </summary>
+    private bool IsDragOverSlot(ComponentSlot slot)
+    {
+        return _currentDragOverSlot == slot;
+    }
+
+    /// <summary>
+    /// Gère l'installation d'un composant dans un slot
+    /// </summary>
+    private void HandleInstallComponent(ComponentSlot slot)
+    {
+        if (_draggedComponent == null || _draggedComponent.State != ComponentState.BoughtNew)
+            return;
+
+        // Vérifie que le slot correspond au type du composant
+        if (_draggedComponent.Slot != slot)
+        {
+            return; // Slot incompatible
+        }
+
+        // Lance le QTE d'installation
+        _currentQteComponent = _draggedComponent;
+        _showQte = true;
+        _draggedComponent = null;
+        _currentDragOverSlot = null;
+    }
+
+    /// <summary>
+    /// Gère l'installation du système d'exploitation
+    /// </summary>
+    private void HandleInstallOs(PcComponent osComponent)
+    {
+        if (osComponent.State != ComponentState.BoughtNew)
+            return;
+
+        // Lance le QTE d'installation pour l'OS
+        _currentQteComponent = osComponent;
+        _showQte = true;
+    }
+
+    /// <summary>
+    /// Gère la fin du QTE d'installation
+    /// </summary>
+    private void HandleQteFinished(QteResult result)
+    {
+        if (_currentQteComponent != null)
+        {
+            Game.ApplyQteInstall(_currentQteComponent, result);
+            _currentQteComponent = null;
+        }
+
+        _showQte = false;
+    }
+
+    /// <summary>
+    /// Passe à la phase Scoreboard
+    /// </summary>
+    private async Task GoToScoreboard()
+    {
         Game.State.Phase = GamePhase.Scoreboard;
+        await OnPhaseChanged.InvokeAsync();
     }
 }
