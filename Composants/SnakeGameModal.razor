@@ -35,13 +35,14 @@
                 var viewBoxValue = $"0 0 {gameState.GridWidth} {gameState.GridHeight}";
                 <div class="game-board-wrapper">
                     <svg class="game-canvas-modal" viewBox="@viewBoxValue">
-                        <!-- Grille de fond -->
-                        <defs>
-                            <pattern id="grid-modal" width="1" height="1" patternUnits="userSpaceOnUse">
-                                <path d="M 1 0 L 0 0 0 1" fill="none" stroke="#e0e0e0" stroke-width="0.02"/>
-                            </pattern>
-                        </defs>
-                        <rect width="@gameState.GridWidth" height="@gameState.GridHeight" fill="url(#grid-modal)" stroke="#333" stroke-width="0.1"/>
+                            <!-- Grille de fond - image tile with subtle prison bars -->
+                            <defs>
+                                <pattern id="grid-modal" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
+                                    <image href="/images/Prison.png" x="0" y="0" width="4" height="4" preserveAspectRatio="none" />
+                                </pattern>
+                            </defs>
+                            <rect width="@gameState.GridWidth" height="@gameState.GridHeight" fill="#151515" stroke="#333" stroke-width="0.1"/>
+                            <rect width="@gameState.GridWidth" height="@gameState.GridHeight" fill="url(#grid-modal)"/>
 
                         <!-- Nourriture spéciale -->
                         @if (gameState.SpecialFood != null)
@@ -82,7 +83,7 @@
                             var cx = head.X + 0.5;
                             var cy = head.Y + 0.5;
 
-                            <image x="@(head.X - 0.4)" y="@(head.Y - 0.4)" width="1.8" height="1.8" href="/images/image.png" preserveAspectRatio="xMidYMid meet" class="snake-head-image" transform="rotate(@adjustedAngle @cx @cy)" />
+                            <image x="@(head.X - 0.5)" y="@(head.Y - 0.5)" width="2.0" height="2.0" href="/images/image.png" preserveAspectRatio="xMidYMid meet" class="snake-head-image" transform="rotate(@adjustedAngle @cx @cy)" />
                         }
                     </svg>
                     
