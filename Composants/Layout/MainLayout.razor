@@ -1,3 +1,6 @@
+@using NuitInfo.Rubeus.Composants
+@inherits LayoutComponentBase
+@inject IJSRuntime JS
 @inherits LayoutComponentBase
 @* Required *@
 <MudThemeProvider />
@@ -8,8 +11,6 @@
 
 @* Needed for snackbars *@
 <MudSnackbarProvider />
-﻿@using NuitInfo.Rubeus.Composants
-@inject IJSRuntime JS
 
 <div class="page">
     <div class="sidebar">
@@ -35,6 +36,8 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+<ChatWidget />
 
 @code {
     private SnakeGameModal? snakeModalRef;
