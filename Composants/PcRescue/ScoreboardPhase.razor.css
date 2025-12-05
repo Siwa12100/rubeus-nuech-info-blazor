@@ -1,0 +1,36 @@
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 20px #28a745;
+    }
+    50% {
+        box-shadow: 0 0 40px #28a745;
+    }
+}
+
+@media (max-width: 768px) {
+    .gauges-container {
+        grid-template-columns: 1fr;
+    }
+
+    .additional-stats {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .scoreboard-content {
+        padding: 20px;
+    }
+
+    .title {
+        font-size: 1.8em;
+    }
+}
