@@ -111,15 +111,15 @@ public class PcRescueGameService
         // Le composant passe à l'état "Removed"
         component.State = ComponentState.Removed;
 
-        // Modification de la condition selon le résultat du QTE
+        // La condition doit refléter strictement la couleur cliquée (vert/jaune/rouge)
+        // Vert -> aucun dégât supplémentaire, Jaune -> au moins Endommagé, Rouge -> Détruit
         switch (result)
         {
             case QteResult.Perfect:
-                // Aucun dommage
+                // Aucun changement d'état (pas de "soin")
                 break;
 
             case QteResult.Medium:
-                // Risque d'endommagement si intact
                 if (component.Condition == ComponentCondition.Intact)
                 {
                     component.Condition = ComponentCondition.Damaged;
@@ -127,10 +127,7 @@ public class PcRescueGameService
                 break;
 
             case QteResult.Fail:
-                // Dommage assuré
-                component.Condition = component.Condition == ComponentCondition.Intact
-                    ? ComponentCondition.Damaged
-                    : ComponentCondition.Broken;
+                component.Condition = ComponentCondition.Broken;
                 break;
         }
     }

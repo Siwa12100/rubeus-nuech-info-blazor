@@ -1,8 +1,9 @@
 @using NuitInfo.Rubeus.PcRescue.Models
+@using System.Diagnostics
 @implements IDisposable
 
 <div class="qte-overlay" @onclick="HandleClick">
-    <div class="qte-container" @onclick:stopPropagation="true">
+    <div class="qte-container" @onclick="HandleClick" @onclick:stopPropagation="true">
         <h2 class="qte-title">⚡ Extraction en cours...</h2>
         <p class="qte-instruction">Cliquez quand l'aiguille est dans la zone verte !</p>
 
@@ -243,6 +244,10 @@
     private string _mediumDashArray = "";
     private string _mediumDashOffset = "";
 
+    // Chronomètre pour synchroniser le calcul d'angle avec l'animation CSS
+    private readonly Stopwatch _stopwatch = new();
+    private bool _started;
+
     protected override void OnInitialized()
     {
         // Randomiser la position de la zone de succès
@@ -268,18 +273,39 @@
         _mediumDashOffset = $"{mediumOffset}";
     }
 
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_started)
+        {
+            _stopwatch.Start();
+            _started = true;
+        }
+        return Task.CompletedTask;
+    }
+
     private async Task HandleClick()
     {
         // Calculer l'angle actuel de l'aiguille
-        var elapsed = DateTime.Now.Millisecond + (DateTime.Now.Second * 1000);
-        var currentAngle = (elapsed % _speed) * 360.0 / _speed;
+        var elapsedMs = _stopwatch.IsRunning ? _stopwatch.ElapsedMilliseconds : 0;
+        var currentAngle = (elapsedMs % _speed) * 360.0 / _speed;
+
+        // Convertir l'angle de l'aiguille (CSS: 0° = 12h) vers le repère du cercle SVG (0° = 3h)
+        // 12h (CSS 0°) correspond à 270° en SVG (car 0° SVG = 3h). Donc on soustrait 90°.
+        var needleAngleSvg = (currentAngle - 90 + 360) % 360;
 
         // Normaliser les angles
-        var normalizedAngle = (currentAngle + 360) % 360;
-        var normalizedZoneStart = (_zoneRotation - _mediumZoneSize / 2 + 360) % 360;
-        var normalizedZoneEnd = (_zoneRotation + _mediumZoneSize / 2 + 360) % 360;
-        var normalizedPerfectStart = (_zoneRotation - _perfectZoneSize / 2 + 360) % 360;
-        var normalizedPerfectEnd = (_zoneRotation + _perfectZoneSize / 2 + 360) % 360;
+        // Les tailles de zones sont exprimées en pourcentage: convertir en degrés
+        var perfectDeg = 360.0 * _perfectZoneSize / 100.0;
+        var mediumDeg = 360.0 * _mediumZoneSize / 100.0;
+
+        // Le SVG dessine la zone Perfect en démarrant à _zoneRotation; son centre visuel est donc à _zoneRotation + perfectDeg/2
+        var zoneCenter = (_zoneRotation + perfectDeg / 2 + 360) % 360;
+
+        var normalizedAngle = (needleAngleSvg + 360) % 360;
+        var normalizedZoneStart = (zoneCenter - mediumDeg / 2 + 360) % 360;
+        var normalizedZoneEnd = (zoneCenter + mediumDeg / 2 + 360) % 360;
+        var normalizedPerfectStart = (zoneCenter - perfectDeg / 2 + 360) % 360;
+        var normalizedPerfectEnd = (zoneCenter + perfectDeg / 2 + 360) % 360;
 
         QteResult result;
 
@@ -319,6 +345,10 @@
 
     public void Dispose()
     {
-        // Nettoyage si nécessaire
+        // Nettoyage
+        if (_stopwatch.IsRunning)
+        {
+            _stopwatch.Stop();
+        }
     }
 }
