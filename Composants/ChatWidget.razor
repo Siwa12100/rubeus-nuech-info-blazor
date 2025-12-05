@@ -4,13 +4,14 @@
 @using Microsoft.AspNetCore.Components
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <div class="chat-widget">
     @if (!IsOpen)
     {
         <!-- Bulle flottante -->
         <button class="chat-bubble" @onclick="OpenChat" title="Ouvrir le chat">
-            💬
+            <img src="/GastonBergeurImg/GastonBergeur.png" alt="Chat" />
         </button>
     }
     else
@@ -19,7 +20,7 @@
         <div class="chat-popup">
             <!-- Header -->
             <div class="chat-header">
-                <span>GastonBergeur</span>
+                <span>Gaston-Bergeur le gambergeur</span>
                 <button class="chat-close" @onclick="CloseChat" title="Fermer">✕</button>
             </div>
 
@@ -28,20 +29,29 @@
                 @foreach (var msg in Messages)
                 {
                     <div class="message @(msg.IsUser ? "user" : "assistant")">
-                        <div class="message-content">@msg.Content</div>
-                        <div class="message-time">@msg.Timestamp.ToString("HH:mm")</div>
+                        @if (!msg.IsUser)
+                        {
+                            <img src="/GastonBergeurImg/GastonBergeurAuBar.png" alt="Gaston" class="profile-pic" />
+                        }
+                        <div class="message-bubble">
+                            <div class="message-content">@msg.Content</div>
+                            <div class="message-time">@msg.Timestamp.ToString("HH:mm")</div>
+                        </div>
                     </div>
                 }
 
                 @if (IsSending)
                 {
                     <div class="message assistant typing">
-                        <div class="message-content">
-                            <span class="typing-indicator">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </span>
+                        <img src="/GastonBergeurImg/GastonBergeurParle.gif" alt="Gaston parle" class="profile-pic" />
+                        <div class="message-bubble">
+                            <div class="message-content">
+                                <span class="typing-indicator">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 }
@@ -114,6 +124,7 @@
 
         IsSending = true;
         StateHasChanged();
+        await ScrollToBottom();
 
         try
         {
@@ -138,6 +149,8 @@
                 {
                     Messages.Add(msg);
                 }
+                StateHasChanged();
+                await ScrollToBottom();
             }
         }
         catch (Exception ex)
@@ -154,6 +167,26 @@
         {
             IsSending = false;
             StateHasChanged();
+        }
+    }
+
+    private async Task ScrollToBottom()
+    {
+        try
+        {
+            // Attendre que le DOM soit mis à jour
+            await Task.Delay(10);
+            await JSRuntime.InvokeVoidAsync("eval",
+                @"setTimeout(() => {
+                    const messages = document.querySelector('.chat-messages');
+                    if (messages) {
+                        messages.scrollTop = messages.scrollHeight;
+                    }
+                }, 0);");
+        }
+        catch
+        {
+            // Ignore si l'élément n'existe pas encore
         }
     }
 }
