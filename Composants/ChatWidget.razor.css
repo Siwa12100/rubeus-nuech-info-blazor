@@ -122,7 +122,6 @@
 .message.user {
     align-self: flex-end;
     align-items: flex-end;
-    flex-direction: row-reverse;
 }
 
 .message.assistant {
